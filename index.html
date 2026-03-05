@@ -6,19 +6,176 @@
   <meta name="google" content="notranslate">
   <title>so-maa</title>
   <style>
+    /* 전체 기본 설정 */
     body {
+      margin: 0;
+      padding: 0;
       background-color: #FAFAFA;
       color: #09090B;
-      font-family: sans-serif;
+      font-family: 'Malgun Gothic', sans-serif;
+    }
+
+    /* 1. 상단: 배경 이미지와 겹치는 로고 영역 */
+    .hero-section {
+      position: relative; /* 로고가 겹치기 위한 기준점 */
+      width: 100%;
+      height: 300px;
+      background-color: #E4E4E7; /* 나중에 배경 이미지로 바꿀 부분 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-text {
+      color: #71717A;
+      font-size: 20px;
+    }
+    
+    /* 겹치는 로고 박스 설정 */
+    .logo-box {
+      position: absolute;
+      bottom: -40px; /* 배경 이미지 아래로 40px 튀어나오게 설정 */
+      left: 10%; /* 화면 왼쪽에서 10% 띄움 */
+      width: 120px;
+      height: 120px;
+      background-color: #FFFFFF;
+      border: 2px solid #09090B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    /* 페이지 전체 좌우 여백 설정 (내용이 가운데로 모이게) */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* 2. 중단: 메뉴 영역 */
+    .menu-section {
+      margin-top: 80px; /* 로고가 튀어나온 공간만큼 띄워줌 */
+      margin-bottom: 50px;
+    }
+    .menu-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      border: 1px solid #09090B;
+      display: inline-block;
+      padding: 5px 10px;
+    }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4칸으로 일정하게 나눔 */
+      gap: 15px;
+    }
+    .menu-item {
+      border: 1px solid #09090B;
+      padding: 20px;
       text-align: center;
-      padding-top: 100px;
+      font-weight: bold;
+      background-color: #FFFFFF;
+      cursor: pointer;
+    }
+
+    /* 3. 하단: 게시판 영역 */
+    .board-section {
+      margin-bottom: 100px;
+    }
+    .board-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      border: 1px solid #09090B;
+      display: inline-block;
+      padding: 5px 10px;
+    }
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* 3칸으로 일정하게 나눔 */
+      gap: 30px;
+    }
+    .board-col {
+      /* 각 게시판 단락 */
+    }
+    .board-col-title {
+      border: 1px solid #09090B;
+      padding: 8px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+      background-color: #FFFFFF;
+    }
+    .board-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .board-list li {
+      border-bottom: 1px solid #E4E4E7;
+      padding: 10px 0;
+      font-size: 14px;
+      color: #3F3F46;
     }
   </style>
 </head>
 <body>
 
-  <h1>환영합니다! 여기가 진짜 메인 대문입니다.</h1>
-  <p>so-maa의 웹사이트가 성공적으로 만들어졌습니다!</p>
+  <div class="hero-section">
+    <div class="hero-text">이미지 (배경)</div>
+    <div class="logo-box">이미지<br>(로고)</div>
+  </div>
+
+  <div class="container">
+    
+    <div class="menu-section">
+      <div class="menu-title">MEMU</div>
+      <div class="menu-grid">
+        <div class="menu-item">so-maa</div>
+        <div class="menu-item">캐릭터</div>
+        <div class="menu-item">세계관</div>
+        <div class="menu-item">가이드</div>
+      </div>
+    </div>
+
+    <div class="board-section">
+      <div class="board-title">게시판</div>
+      <div class="board-grid">
+        
+        <div class="board-col">
+          <div class="board-col-title">이름</div>
+          <ul class="board-list">
+            <li>최신 게시글 제목 예시 1</li>
+            <li>최신 게시글 제목 예시 2</li>
+            <li>최신 게시글 제목 예시 3</li>
+          </ul>
+        </div>
+
+        <div class="board-col">
+          <div class="board-col-title">이름</div>
+          <ul class="board-list">
+            <li>최신 게시글 제목 예시 1</li>
+            <li>최신 게시글 제목 예시 2</li>
+            <li>최신 게시글 제목 예시 3</li>
+          </ul>
+        </div>
+
+        <div class="board-col">
+          <div class="board-col-title">이름</div>
+          <ul class="board-list">
+            <li>최신 게시글 제목 예시 1</li>
+            <li>최신 게시글 제목 예시 2</li>
+            <li>최신 게시글 제목 예시 3</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
 
 </body>
 </html>
