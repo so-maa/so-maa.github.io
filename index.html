@@ -5,159 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>상태창 및 항목 템플릿 생성기</title>
     <style>
-        body {
-            background-color: #1a1b26;
-            color: #a9b1d6;
-            font-family: 'Malgun Gothic', sans-serif;
-            display: flex;
-            justify-content: center;
-            padding: 20px 10px; /* 전체 화면 여백도 살짝 줄였습니다 */
-            padding-bottom: 120px; 
-            margin: 0;
-        }
-        .container {
-            width: 100%;
-            max-width: 600px;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-size: 16px; /* 헤더 글자 크기 축소 */
-            font-weight: bold;
-        }
-        .header .title-mark {
-            color: #f7768e;
-            margin-right: 5px;
-        }
-        .item-row {
-            display: flex;
-            gap: 6px; /* 칸 사이 간격 축소 */
-            margin-bottom: 8px; /* 줄 사이 간격 축소 */
-            align-items: flex-start;
-        }
+        body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; padding: 40px 20px; padding-bottom: 150px; margin: 0; }
+        .container { width: 100%; max-width: 600px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
+        .header .title-mark { color: #f7768e; margin-right: 5px; }
+        .item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+        textarea { background-color: #24283b; color: #c0caf5; border: none; border-radius: 8px; padding: 12px 15px; font-size: 16px; font-family: inherit; resize: none; overflow: hidden; min-height: 24px; line-height: 1.5; box-sizing: border-box; outline: none; }
+        textarea:focus { box-shadow: 0 0 0 2px #7aa2f7; }
+        textarea::placeholder { color: #565f89; }
+        .item-name { width: 30%; }
+        .item-value { width: 60%; flex-grow: 1; }
+        .delete-btn { background: none; border: none; color: #565f89; font-size: 18px; cursor: pointer; padding: 12px 5px; transition: color 0.2s; }
+        .delete-btn:hover { color: #f7768e; }
+        .add-btn { width: 100%; background-color: transparent; color: #7aa2f7; border: 1.5px dashed #414868; border-radius: 8px; padding: 15px; font-size: 16px; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
+        .add-btn:hover { border-color: #7aa2f7; background-color: rgba(122, 162, 247, 0.1); }
         
-        /* 💡 추가된 순서 변경 버튼 스타일 */
-        .order-controls {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            margin-top: 2px;
-        }
-        .order-btn {
-            background: none;
-            border: none;
-            color: #565f89;
-            font-size: 10px; /* 화살표 크기를 작게 */
-            cursor: pointer;
-            padding: 4px;
-            line-height: 1;
-            transition: color 0.2s;
-        }
-        .order-btn:hover {
-            color: #7aa2f7;
-        }
+        /* 모바일 화면에서 버튼이 많아져도 잘리지 않도록 좌우 스크롤 허용 및 너비 조정 */
+        .shortcut-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: rgba(36, 40, 59, 0.95); backdrop-filter: blur(5px); padding: 10px 15px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; gap: 6px; align-items: center; z-index: 1000; max-width: 95vw; overflow-x: auto; white-space: nowrap; }
+        
+        /* 스크롤바 숨기기 (깔끔한 UI 유지) */
+        .shortcut-bar::-webkit-scrollbar { display: none; }
+        .shortcut-bar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        textarea {
-            background-color: #24283b;
-            color: #c0caf5;
-            border: none;
-            border-radius: 6px; /* 테두리 둥글기 살짝 축소 */
-            padding: 8px 10px; /* 💡 핵심: 내부 여백을 확 줄여서 날씬하게 만듦 */
-            font-size: 16px; /* 모바일 강제 확대 방지를 위해 16px 유지 */
-            font-family: inherit;
-            resize: none;
-            overflow: hidden;
-            min-height: 20px;
-            line-height: 1.4; /* 줄간격을 살짝 타이트하게 */
-            box-sizing: border-box;
-            outline: none;
-        }
-        textarea:focus {
-            box-shadow: 0 0 0 1.5px #7aa2f7; 
-        }
-        textarea::placeholder {
-            color: #565f89;
-        }
-        .item-name {
-            width: 28%;
-        }
-        .item-value {
-            width: 60%;
-            flex-grow: 1;
-        }
-        .delete-btn {
-            background: none;
-            border: none;
-            color: #565f89;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 8px 4px;
-            margin-top: 2px;
-            transition: color 0.2s;
-        }
-        .delete-btn:hover {
-            color: #f7768e;
-        }
-        .add-btn {
-            width: 100%;
-            background-color: transparent;
-            color: #7aa2f7;
-            border: 1.5px dashed #414868;
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 14px; /* 버튼 글자 크기 축소 */
-            cursor: pointer;
-            margin-top: 5px;
-            transition: all 0.2s;
-        }
-        .add-btn:hover {
-            border-color: #7aa2f7;
-            background-color: rgba(122, 162, 247, 0.1);
-        }
-        .shortcut-bar {
-            position: fixed;
-            bottom: 30px; 
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(36, 40, 59, 0.95);
-            backdrop-filter: blur(5px);
-            padding: 10px 16px; /* 단축키 바 크기도 살짝 축소 */
-            border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            z-index: 1000;
-        }
-        .shortcut-btn {
-            background-color: #414868;
-            color: #c0caf5;
-            border: none;
-            border-radius: 20px;
-            padding: 6px 12px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-            white-space: nowrap;
-        }
-        .shortcut-btn:hover, .shortcut-btn:active {
-            background-color: #7aa2f7;
-            color: #1a1b26;
-        }
-        .divider { width: 1px; height: 16px; background-color: #565f89; margin: 0 4px; }
+        .shortcut-btn { background-color: #414868; color: #c0caf5; border: none; border-radius: 20px; padding: 8px 12px; font-size: 14px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
+        .shortcut-btn:hover, .shortcut-btn:active { background-color: #7aa2f7; color: #1a1b26; }
+        .divider { width: 1px; height: 20px; background-color: #565f89; margin: 0 2px; flex-shrink: 0; }
         .copy-btn { background-color: #9ece6a; color: #1a1b26; }
         .copy-btn:hover, .copy-btn:active { background-color: #73daca; }
+        /* 이동 버튼 전용 스타일 포인트 */
+        .move-btn { background-color: #24283b; border: 1px solid #565f89; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <div><span class="title-mark">*</span>항목 설정</div>
-            <div id="charCount" style="color: #565f89; font-size: 12px;">0 / 1,000</div>
+            <div><span class="title-mark">*</span>항목</div>
+            <div id="charCount" style="color: #565f89; font-size: 14px;">0 / 1,000</div>
         </div>
 
         <div id="itemList"></div>
@@ -170,7 +54,13 @@
         <button class="shortcut-btn" onclick="insertShortcut('·')">·</button>
         <button class="shortcut-btn" onclick="insertShortcut('char')">char</button>
         <button class="shortcut-btn" onclick="insertShortcut('user')">user</button>
+        
         <div class="divider"></div>
+        
+        <!-- 위/아래 이동 버튼 추가 -->
+        <button class="shortcut-btn move-btn" onclick="moveRow('up')">↑</button>
+        <button class="shortcut-btn move-btn" onclick="moveRow('down')">↓</button>
+        
         <button class="shortcut-btn copy-btn" id="copyBtn" onclick="copyFocusedField()">복사</button>
     </div>
 
@@ -255,38 +145,40 @@
         }
 
         // ==========================================
-        // 💡 새롭게 추가된 기능: 위로 이동 / 아래로 이동
+        // 💡 새롭게 추가된 기능: 항목 위/아래 순서 이동
         // ==========================================
-        function moveUp(btn) {
-            const row = btn.closest('.item-row');
-            // 이전 형제 요소(위쪽 줄)가 존재한다면 자리를 바꿉니다.
-            if (row.previousElementSibling) {
-                row.parentNode.insertBefore(row, row.previousElementSibling);
-                saveData(); // 순서가 바뀌었으니 자동 저장
-            }
-        }
+        function moveRow(direction) {
+            if (!lastFocusedTextarea) return;
 
-        function moveDown(btn) {
-            const row = btn.closest('.item-row');
-            // 다음 형제 요소(아래쪽 줄)가 존재한다면 자리를 바꿉니다.
-            if (row.nextElementSibling) {
-                row.parentNode.insertBefore(row.nextElementSibling, row);
-                saveData(); // 순서가 바뀌었으니 자동 저장
+            // 현재 커서가 있는 입력창이 속한 줄(.item-row)을 찾습니다.
+            const currentRow = lastFocusedTextarea.closest('.item-row');
+            if (!currentRow) return;
+
+            if (direction === 'up') {
+                const prevRow = currentRow.previousElementSibling;
+                if (prevRow) {
+                    // 이전 줄이 있다면, 현재 줄을 이전 줄 앞으로 이동시킵니다.
+                    itemList.insertBefore(currentRow, prevRow);
+                    saveData();
+                    lastFocusedTextarea.focus();
+                }
+            } else if (direction === 'down') {
+                const nextRow = currentRow.nextElementSibling;
+                if (nextRow) {
+                    // 다음 줄이 있다면, 현재 줄을 다음 줄 뒤로 이동시킵니다.
+                    itemList.insertBefore(currentRow, nextRow.nextElementSibling);
+                    saveData();
+                    lastFocusedTextarea.focus();
+                }
             }
         }
-        // ==========================================
 
         function addRow(nameStr = '', valueStr = '') {
             const row = document.createElement('div');
             row.className = 'item-row';
-            // 왼쪽에 위/아래 이동 버튼(▲, ▼)이 추가되었습니다.
             row.innerHTML = `
-                <div class="order-controls">
-                    <button class="order-btn" onclick="moveUp(this)">▲</button>
-                    <button class="order-btn" onclick="moveDown(this)">▼</button>
-                </div>
-                <textarea class="item-name" rows="1" placeholder="이름"></textarea>
-                <textarea class="item-value" rows="1" placeholder="설정"></textarea>
+                <textarea class="item-name" rows="1" placeholder="항목 이름"></textarea>
+                <textarea class="item-value" rows="1" placeholder="세부 설정"></textarea>
                 <button class="delete-btn" onclick="deleteRow(this)">✕</button>
             `;
             
@@ -300,14 +192,12 @@
                 textareas.forEach(ta => adjustHeight(ta));
                 updateCharCount();
             }, 0);
-
             saveData();
         }
 
         function deleteRow(btn) {
             const row = btn.parentElement;
             row.remove();
-            
             if (itemList.children.length === 0) {
                 addRow();
             } else {
