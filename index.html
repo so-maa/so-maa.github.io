@@ -7,8 +7,25 @@
     <style>
         body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; padding: 40px 20px; padding-bottom: 150px; margin: 0; }
         .container { width: 100%; max-width: 600px; }
+        
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
+        .header .title-area { display: flex; align-items: center; } /* 타이틀과 전체복사 버튼 정렬을 위해 추가 */
         .header .title-mark { color: #f7768e; margin-right: 5px; }
+        
+        /* 💡 새롭게 추가된 전체 복사 버튼 스타일 */
+        .copy-all-btn {
+            background-color: transparent;
+            color: #7aa2f7;
+            border: 1px solid #7aa2f7;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
         .item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
         textarea { background-color: #24283b; color: #c0caf5; border: none; border-radius: 8px; padding: 12px 15px; font-size: 16px; font-family: inherit; resize: none; overflow: hidden; min-height: 24px; line-height: 1.5; box-sizing: border-box; outline: none; }
         textarea:focus { box-shadow: 0 0 0 2px #7aa2f7; }
@@ -28,40 +45,41 @@
         .copy-btn { background-color: #9ece6a; color: #1a1b26; }
         .move-btn { background-color: #24283b; border: 1px solid #565f89; }
 
-        /* ==========================================
-           💡 핵심 변경 1: 모바일 Sticky Hover 방지 CSS
-           PC(마우스) 환경에서만 hover가 작동하도록 제한합니다.
-           ========================================== */
+        /* PC (마우스) 환경 Hover 설정 */
         @media (hover: hover) {
             .shortcut-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
             .copy-btn:hover { background-color: #73daca; }
             .delete-btn:hover { color: #f7768e; }
             .add-btn:hover { border-color: #7aa2f7; background-color: rgba(122, 162, 247, 0.1); }
+            .copy-all-btn:hover { background-color: #7aa2f7; color: #1a1b26; } /* 전체 복사 호버 */
         }
         
-        /* 터치했을 때(누르고 있을 때)의 효과는 모든 기기에 적용합니다 */
+        /* 모바일 터치 (Active) 설정 */
         .shortcut-btn:active { background-color: #7aa2f7; color: #1a1b26; }
         .copy-btn:active { background-color: #73daca; }
         .delete-btn:active { color: #f7768e; }
         .add-btn:active { border-color: #7aa2f7; background-color: rgba(122, 162, 247, 0.1); }
+        .copy-all-btn:active { background-color: #7aa2f7; color: #1a1b26; } /* 전체 복사 터치 */
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <div><span class="title-mark">*</span>항목</div>
+            <div class="title-area">
+                <div><span class="title-mark">*</span>항목</div>
+                <!-- 전체 복사 버튼 추가 -->
+                <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllData(this)">전체 복사</button>
+            </div>
             <div id="charCount" style="color: #565f89; font-size: 14px;">0 / 1,000</div>
         </div>
 
         <div id="itemList"></div>
 
-        <!-- 버튼 클릭 시 this를 전달하여 자신의 포커스를 해제하도록 만듭니다 -->
         <button class="add-btn" onclick="addRow(this)">+ 항목 추가</button>
     </div>
 
     <div class="shortcut-bar" id="shortcutBar">
-        <!-- 버튼 클릭 시(this) 즉시 포커스 해제 처리 -->
         <button class="shortcut-btn" onclick="insertShortcut(this, '→')">→</button>
         <button class="shortcut-btn" onclick="insertShortcut(this, '·')">·</button>
         <button class="shortcut-btn" onclick="insertShortcut(this, 'char')">char</button>
@@ -80,8 +98,46 @@
         const charCountDisplay = document.getElementById('charCount');
         const shortcutBar = document.getElementById('shortcutBar');
         const copyBtn = document.getElementById('copyBtn');
+        const copyAllBtn = document.getElementById('copyAllBtn');
         
         let lastFocusedTextarea = null;
+
+        // ==========================================
+        // 💡 새롭게 추가된 기능: 전체 내용 포맷팅 복사
+        // ==========================================
+        function copyAllData(btn) {
+            if (btn) btn.blur(); // 버튼 포커스 해제
+
+            const rows = document.querySelectorAll('.item-row');
+            let resultText = [];
+            
+            rows.forEach(row => {
+                const nameStr = row.querySelector('.item-name').value;
+                const valueStr = row.querySelector('.item-value').value;
+                
+                // 이름과 세부설정 둘 다 비어있지 않은 경우에만 텍스트로 합침
+                if (nameStr.trim() !== '' || valueStr.trim() !== '') {
+                    resultText.push(`${nameStr}: ${valueStr}`);
+                }
+            });
+
+            // 줄바꿈으로 모든 항목을 합침
+            const finalString = resultText.join('\n');
+
+            if (finalString === '') {
+                alert('복사할 내용이 없습니다!');
+                return;
+            }
+
+            navigator.clipboard.writeText(finalString).then(() => {
+                copyAllBtn.textContent = '완료!';
+                setTimeout(() => { copyAllBtn.textContent = '전체 복사'; }, 1000);
+            }).catch(err => {
+                console.log('전체 복사 실패:', err);
+                alert('복사에 실패했습니다.');
+            });
+        }
+        // ==========================================
 
         function saveData() {
             const rows = document.querySelectorAll('.item-row');
@@ -125,12 +181,8 @@
             element.style.height = (element.scrollHeight) + 'px';
         }
 
-        // ==========================================
-        // 💡 핵심 변경 2: 버튼 포커스(blur) 강제 해제
-        // 함수가 실행될 때 버튼(btn)을 받아와 즉시 선택을 해제합니다.
-        // ==========================================
         function insertShortcut(btn, text) {
-            if (btn) btn.blur(); // 눌려있던 버튼 상태 해제
+            if (btn) btn.blur();
 
             if (lastFocusedTextarea) {
                 const start = lastFocusedTextarea.selectionStart;
@@ -143,7 +195,7 @@
                 adjustHeight(lastFocusedTextarea);
                 updateCharCount();
                 saveData();
-                lastFocusedTextarea.focus(); // 입력창으로 다시 포커스 이동 (키보드 유지)
+                lastFocusedTextarea.focus();
             }
         }
 
