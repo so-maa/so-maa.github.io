@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>상태창 및 항목 템플릿 생성기</title>
     <style>
         body {
@@ -12,11 +12,13 @@
             display: flex;
             justify-content: center;
             padding: 40px 20px;
+            /* 하단 단축키 바에 컨텐츠가 가려지지 않도록 여백 추가 */
+            padding-bottom: 100px; 
             margin: 0;
         }
         .container {
             width: 100%;
-            max-width: 600px; /* 좌우 폭 고정 */
+            max-width: 600px;
         }
         .header {
             display: flex;
@@ -36,17 +38,17 @@
             margin-bottom: 10px;
             align-items: flex-start;
         }
-        /* 입력창 공통 스타일 */
         textarea {
             background-color: #24283b;
             color: #c0caf5;
             border: none;
             border-radius: 8px;
             padding: 12px 15px;
-            font-size: 15px;
+            /* 모바일 자동 확대 방지를 위해 16px 이상으로 설정 필수 */
+            font-size: 16px; 
             font-family: inherit;
-            resize: none; /* 사용자 임의 크기 조절 방지 */
-            overflow: hidden; /* 스크롤바 숨김 */
+            resize: none;
+            overflow: hidden;
             min-height: 24px;
             line-height: 1.5;
             box-sizing: border-box;
@@ -55,16 +57,13 @@
         textarea::placeholder {
             color: #565f89;
         }
-        /* 항목 이름 적는 곳 (짧은 너비) */
         .item-name {
             width: 30%;
         }
-        /* 항목 세부 설정 적는 곳 (긴 너비) */
         .item-value {
             width: 60%;
             flex-grow: 1;
         }
-        /* 삭제 버튼 */
         .delete-btn {
             background: none;
             border: none;
@@ -77,7 +76,6 @@
         .delete-btn:hover {
             color: #f7768e;
         }
-        /* 항목 추가 버튼 */
         .add-btn {
             width: 100%;
             background-color: transparent;
@@ -94,6 +92,37 @@
             border-color: #7aa2f7;
             background-color: rgba(122, 162, 247, 0.1);
         }
+
+        /* 하단 고정 단축키 바 스타일 */
+        .shortcut-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(36, 40, 59, 0.9);
+            backdrop-filter: blur(5px);
+            padding: 12px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .shortcut-btn {
+            background-color: #414868;
+            color: #c0caf5;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .shortcut-btn:hover, .shortcut-btn:active {
+            background-color: #7aa2f7;
+            color: #1a1b26;
+        }
     </style>
 </head>
 <body>
@@ -105,7 +134,6 @@
         </div>
 
         <div id="itemList">
-            <!-- 기본 항목 1개 제공 -->
             <div class="item-row">
                 <textarea class="item-name" rows="1" placeholder="항목 이름"></textarea>
                 <textarea class="item-value" rows="1" placeholder="세부 설정"></textarea>
@@ -116,22 +144,71 @@
         <button class="add-btn" onclick="addRow()">+ 항목 추가</button>
     </div>
 
+    <div class="shortcut-bar">
+        <button class="shortcut-btn" onclick="insertShortcut('→')">→</button>
+        <button class="shortcut-btn" onclick="insertShortcut('·')">·</button>
+        <button class="shortcut-btn" onclick="insertShortcut('{{char}}')">char</button>
+        <button class="shortcut-btn" onclick="insertShortcut('{{user}}')">user</button>
+    </div>
+
     <script>
         const itemList = document.getElementById('itemList');
         const charCountDisplay = document.getElementById('charCount');
+        
+        // 마지막으로 클릭(포커스)된 텍스트 영역을 기억하는 변수
+        let lastFocusedTextarea = null;
 
-        // 입력 시 자동으로 높이를 조절하고 글자 수를 세는 이벤트
+        // 화면 내의 어떤 textarea든 클릭하면 그 위치를 기억함
+        document.addEventListener('focusin', function(e) {
+            if (e.target.tagName.toLowerCase() === 'textarea') {
+                lastFocusedTextarea = e.target;
+            }
+        });
+
+        // 텍스트 입력 시 높이 자동 조절 및 글자 수 세기
         document.addEventListener('input', function(e) {
             if (e.target.tagName.toLowerCase() === 'textarea') {
-                // 상하 길이 자동 조절 핵심 로직
-                e.target.style.height = 'auto'; // 높이를 초기화한 후
-                e.target.style.height = (e.target.scrollHeight) + 'px'; // 내용물의 높이만큼 다시 설정
-                
+                adjustHeight(e.target);
                 updateCharCount();
             }
         });
 
-        // 새로운 항목 줄을 추가하는 함수
+        function adjustHeight(element) {
+            element.style.height = 'auto';
+            element.style.height = (element.scrollHeight) + 'px';
+        }
+
+        // 단축키 삽입 및 복사 함수
+        function insertShortcut(text) {
+            // 1. 클립보드에 복사
+            navigator.clipboard.writeText(text).catch(err => {
+                console.log('클립보드 복사 실패:', err);
+            });
+
+            // 2. 입력창에 붙여넣기
+            if (lastFocusedTextarea) {
+                const start = lastFocusedTextarea.selectionStart;
+                const end = lastFocusedTextarea.selectionEnd;
+                const currentValue = lastFocusedTextarea.value;
+                
+                // 커서 위치에 텍스트 삽입
+                lastFocusedTextarea.value = currentValue.substring(0, start) + text + currentValue.substring(end);
+                
+                // 삽입한 텍스트 바로 뒤로 커서 이동
+                lastFocusedTextarea.selectionStart = lastFocusedTextarea.selectionEnd = start + text.length;
+                
+                // 텍스트가 길어졌을 수 있으므로 높이 및 글자 수 업데이트 강제 실행
+                adjustHeight(lastFocusedTextarea);
+                updateCharCount();
+                
+                // 다시 입력창에 포커스를 주어 타이핑을 계속할 수 있게 함
+                lastFocusedTextarea.focus();
+            } else {
+                // 선택된 창이 없을 경우 경고 메시지 (선택 사항)
+                // alert('입력할 칸을 먼저 선택해주세요!');
+            }
+        }
+
         function addRow() {
             const row = document.createElement('div');
             row.className = 'item-row';
@@ -143,14 +220,12 @@
             itemList.appendChild(row);
         }
 
-        // 특정 항목 줄을 삭제하는 함수
         function deleteRow(btn) {
             const row = btn.parentElement;
             row.remove();
             updateCharCount();
         }
 
-        // 전체 글자 수를 계산하는 함수 (이미지 우측 상단 기능 구현)
         function updateCharCount() {
             const textareas = document.querySelectorAll('textarea');
             let totalLength = 0;
