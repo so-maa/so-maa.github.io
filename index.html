@@ -12,8 +12,7 @@
             display: flex;
             justify-content: center;
             padding: 40px 20px;
-            /* 하단 단축키 바에 컨텐츠가 가려지지 않도록 여백 추가 */
-            padding-bottom: 100px; 
+            padding-bottom: 150px; /* 키보드 위 단축키 바 공간을 위해 여백 넉넉히 확보 */
             margin: 0;
         }
         .container {
@@ -44,7 +43,6 @@
             border: none;
             border-radius: 8px;
             padding: 12px 15px;
-            /* 모바일 자동 확대 방지를 위해 16px 이상으로 설정 필수 */
             font-size: 16px; 
             font-family: inherit;
             resize: none;
@@ -96,7 +94,7 @@
         /* 하단 고정 단축키 바 스타일 */
         .shortcut-bar {
             position: fixed;
-            bottom: 30px;
+            bottom: 30px; /* PC 및 기본 상태 위치 */
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(36, 40, 59, 0.9);
@@ -117,7 +115,7 @@
             font-size: 14px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.2s, color 0.2s;
         }
         .shortcut-btn:hover, .shortcut-btn:active {
             background-color: #7aa2f7;
@@ -144,7 +142,7 @@
         <button class="add-btn" onclick="addRow()">+ 항목 추가</button>
     </div>
 
-    <div class="shortcut-bar">
+    <div class="shortcut-bar" id="shortcutBar">
         <button class="shortcut-btn" onclick="insertShortcut('→')">→</button>
         <button class="shortcut-btn" onclick="insertShortcut('·')">·</button>
         <button class="shortcut-btn" onclick="insertShortcut('{{char}}')">char</button>
@@ -154,18 +152,16 @@
     <script>
         const itemList = document.getElementById('itemList');
         const charCountDisplay = document.getElementById('charCount');
+        const shortcutBar = document.getElementById('shortcutBar');
         
-        // 마지막으로 클릭(포커스)된 텍스트 영역을 기억하는 변수
         let lastFocusedTextarea = null;
 
-        // 화면 내의 어떤 textarea든 클릭하면 그 위치를 기억함
         document.addEventListener('focusin', function(e) {
             if (e.target.tagName.toLowerCase() === 'textarea') {
                 lastFocusedTextarea = e.target;
             }
         });
 
-        // 텍스트 입력 시 높이 자동 조절 및 글자 수 세기
         document.addEventListener('input', function(e) {
             if (e.target.tagName.toLowerCase() === 'textarea') {
                 adjustHeight(e.target);
@@ -178,34 +174,22 @@
             element.style.height = (element.scrollHeight) + 'px';
         }
 
-        // 단축키 삽입 및 복사 함수
         function insertShortcut(text) {
-            // 1. 클립보드에 복사
             navigator.clipboard.writeText(text).catch(err => {
                 console.log('클립보드 복사 실패:', err);
             });
 
-            // 2. 입력창에 붙여넣기
             if (lastFocusedTextarea) {
                 const start = lastFocusedTextarea.selectionStart;
                 const end = lastFocusedTextarea.selectionEnd;
                 const currentValue = lastFocusedTextarea.value;
                 
-                // 커서 위치에 텍스트 삽입
                 lastFocusedTextarea.value = currentValue.substring(0, start) + text + currentValue.substring(end);
-                
-                // 삽입한 텍스트 바로 뒤로 커서 이동
                 lastFocusedTextarea.selectionStart = lastFocusedTextarea.selectionEnd = start + text.length;
                 
-                // 텍스트가 길어졌을 수 있으므로 높이 및 글자 수 업데이트 강제 실행
                 adjustHeight(lastFocusedTextarea);
                 updateCharCount();
-                
-                // 다시 입력창에 포커스를 주어 타이핑을 계속할 수 있게 함
                 lastFocusedTextarea.focus();
-            } else {
-                // 선택된 창이 없을 경우 경고 메시지 (선택 사항)
-                // alert('입력할 칸을 먼저 선택해주세요!');
             }
         }
 
@@ -233,6 +217,28 @@
                 totalLength += textarea.value.length;
             });
             charCountDisplay.textContent = `${totalLength.toLocaleString()} / 1,000`;
+        }
+
+        // ==========================================
+        // 💡 핵심 추가 기능: 모바일 키보드 가림 완벽 방지
+        // ==========================================
+        if (window.visualViewport) {
+            const updateBarPosition = () => {
+                // 키보드를 제외한 '실제 눈에 보이는 화면'의 높이와 스크롤 위치 계산
+                const viewportHeight = window.visualViewport.height;
+                const offsetTop = window.visualViewport.offsetTop;
+                
+                // 단축키 바를 화면 가장 아래에서 약 70px 위(여백 포함)에 절대 위치로 고정시킴
+                shortcutBar.style.bottom = 'auto';
+                shortcutBar.style.top = (offsetTop + viewportHeight - 70) + 'px';
+            };
+            
+            // 화면 크기가 변하거나(키보드 올라옴) 스크롤할 때마다 단축키 바 위치 업데이트
+            window.visualViewport.addEventListener('resize', updateBarPosition);
+            window.visualViewport.addEventListener('scroll', updateBarPosition);
+            
+            // 처음 페이지가 열렸을 때 위치 초기화
+            updateBarPosition();
         }
     </script>
 </body>
