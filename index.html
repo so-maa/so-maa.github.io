@@ -172,28 +172,34 @@
         }
 
         // ==========================================
-        // 💡 핵심 변경: 한글 중복 입력(놀자자 현상) 해결
+        // 💡 문제 해결 핵심: 시간차(setTimeout) 입력 기법
         // ==========================================
         function insertShortcut(btn, text) {
-            // 더 이상 버튼에서 포커스를 강제로 뺏지 않습니다.
-            
+            if (btn) btn.blur(); // 버튼 눌림 시각적 해제
+
             if (lastFocusedTextarea) {
-                // 1. 커서를 입력창에 유지하여 한글 조합을 자연스럽게 완료시킵니다.
-                lastFocusedTextarea.focus();
-                
-                // 2. 브라우저가 '직접 타이핑한 것'처럼 인식하게 명령을 내립니다. (실행 취소도 지원됨)
-                if (!document.execCommand('insertText', false, text)) {
-                    // execCommand를 지원하지 않는 극히 일부 환경을 위한 백업 기능
+                // 한글 조합이 온전히 끝날 수 있도록 아주 짧은 0.01초(10ms)의 시간을 벌어줍니다.
+                setTimeout(() => {
                     const start = lastFocusedTextarea.selectionStart;
                     const end = lastFocusedTextarea.selectionEnd;
-                    lastFocusedTextarea.setRangeText(text, start, end, 'end');
-                }
-                
-                adjustHeight(lastFocusedTextarea);
-                updateCharCount();
-                saveData();
+                    const currentValue = lastFocusedTextarea.value;
+                    
+                    // 글자 삽입
+                    lastFocusedTextarea.value = currentValue.substring(0, start) + text + currentValue.substring(end);
+                    
+                    // 커서 위치 이동
+                    lastFocusedTextarea.selectionStart = lastFocusedTextarea.selectionEnd = start + text.length;
+                    
+                    adjustHeight(lastFocusedTextarea);
+                    updateCharCount();
+                    saveData();
+                    
+                    // 다시 타이핑할 수 있도록 포커스 되돌리기
+                    lastFocusedTextarea.focus();
+                }, 10);
             }
         }
+        // ==========================================
 
         function moveRow(btn, direction) {
             if (btn) btn.blur();
