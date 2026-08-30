@@ -8,22 +8,16 @@
         body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; padding: 40px 20px; padding-bottom: 150px; margin: 0; }
         .container { width: 100%; max-width: 600px; }
         
+        /* 💡 새롭게 추가된 슬롯 영역 스타일 */
+        .slot-container { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 15px; }
+        .slot-btn { background-color: #24283b; color: #565f89; border: 1px solid #414868; border-radius: 6px; width: 32px; height: 32px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .slot-btn.active { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
+
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
         .header .title-area { display: flex; align-items: center; } 
         .header .title-mark { color: #f7768e; margin-right: 5px; }
         
-        .copy-all-btn {
-            background-color: transparent;
-            color: #7aa2f7;
-            border: 1px solid #7aa2f7;
-            border-radius: 6px;
-            padding: 4px 10px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        .copy-all-btn { background-color: transparent; color: #7aa2f7; border: 1px solid #7aa2f7; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: bold; margin-left: 12px; cursor: pointer; transition: all 0.2s; }
 
         .item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
         textarea { background-color: #24283b; color: #c0caf5; border: none; border-radius: 8px; padding: 12px 15px; font-size: 16px; font-family: inherit; resize: none; overflow: hidden; min-height: 24px; line-height: 1.5; box-sizing: border-box; outline: none; }
@@ -50,6 +44,7 @@
             .delete-btn:hover { color: #f7768e; }
             .add-btn:hover { border-color: #7aa2f7; background-color: rgba(122, 162, 247, 0.1); }
             .copy-all-btn:hover { background-color: #7aa2f7; color: #1a1b26; } 
+            .slot-btn:hover:not(.active) { background-color: #414868; color: #c0caf5; }
         }
         
         .shortcut-btn:active { background-color: #7aa2f7; color: #1a1b26; }
@@ -57,11 +52,21 @@
         .delete-btn:active { color: #f7768e; }
         .add-btn:active { border-color: #7aa2f7; background-color: rgba(122, 162, 247, 0.1); }
         .copy-all-btn:active { background-color: #7aa2f7; color: #1a1b26; } 
+        .slot-btn:active:not(.active) { background-color: #414868; color: #c0caf5; }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <!-- 💡 멀티 슬롯(1~5) 버튼 영역 -->
+        <div class="slot-container">
+            <button class="slot-btn active" id="slot-1" onclick="switchSlot(1)">1</button>
+            <button class="slot-btn" id="slot-2" onclick="switchSlot(2)">2</button>
+            <button class="slot-btn" id="slot-3" onclick="switchSlot(3)">3</button>
+            <button class="slot-btn" id="slot-4" onclick="switchSlot(4)">4</button>
+            <button class="slot-btn" id="slot-5" onclick="switchSlot(5)">5</button>
+        </div>
+
         <div class="header">
             <div class="title-area">
                 <div><span class="title-mark">*</span>항목</div>
@@ -77,6 +82,8 @@
 
     <div class="shortcut-bar" id="shortcutBar">
         <button class="shortcut-btn" onclick="insertShortcut(this, '→')">→</button>
+        <!-- 💡 ↔ 단축키 추가 (기존 안전 로직 100% 동일 적용) -->
+        <button class="shortcut-btn" onclick="insertShortcut(this, '↔')">↔</button>
         <button class="shortcut-btn" onclick="insertShortcut(this, '·')">·</button>
         <button class="shortcut-btn" onclick="insertShortcut(this, 'char')">char</button>
         <button class="shortcut-btn" onclick="insertShortcut(this, 'user')">user</button>
@@ -97,24 +104,46 @@
         const copyAllBtn = document.getElementById('copyAllBtn');
         
         let lastFocusedTextarea = null;
+        let currentSlot = 1; // 현재 선택된 슬롯 번호 (기본 1번)
+
+        // ==========================================
+        // 💡 새롭게 추가된 기능: 멀티 슬롯(템플릿) 스위칭
+        // ==========================================
+        function switchSlot(slotNumber) {
+            if (currentSlot === slotNumber) return; // 같은 슬롯을 또 누르면 무시
+
+            // 1. 이동하기 전에 현재 작업 중이던 데이터 저장
+            saveData();
+
+            // 2. 슬롯 번호 변경 및 버튼 UI 업데이트
+            currentSlot = slotNumber;
+            document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('slot-' + slotNumber).classList.add('active');
+
+            // 3. 커서 포커스 초기화 및 화면 비우기
+            lastFocusedTextarea = null;
+            itemList.innerHTML = '';
+
+            // 4. 새로운 슬롯의 데이터 불러오기
+            loadData(slotNumber);
+        }
+
+        // ==========================================
 
         function copyAllData(btn) {
             if (btn) btn.blur(); 
-
             const rows = document.querySelectorAll('.item-row');
             let resultText = [];
             
             rows.forEach(row => {
                 const nameStr = row.querySelector('.item-name').value;
                 const valueStr = row.querySelector('.item-value').value;
-                
                 if (nameStr.trim() !== '' || valueStr.trim() !== '') {
                     resultText.push(`${nameStr}: ${valueStr}`);
                 }
             });
 
             const finalString = resultText.join('\n');
-
             if (finalString === '') {
                 alert('복사할 내용이 없습니다!');
                 return;
@@ -124,7 +153,6 @@
                 copyAllBtn.textContent = '완료!';
                 setTimeout(() => { copyAllBtn.textContent = '전체 복사'; }, 1000);
             }).catch(err => {
-                console.log('전체 복사 실패:', err);
                 alert('복사에 실패했습니다.');
             });
         }
@@ -137,11 +165,18 @@
                 const valueStr = row.querySelector('.item-value').value;
                 dataToSave.push({ name: nameStr, value: valueStr });
             });
-            localStorage.setItem('charTemplateData', JSON.stringify(dataToSave));
+            // 💡 현재 선택된 슬롯 번호에 맞춰서 따로 저장합니다 (예: charTemplateData_1)
+            localStorage.setItem('charTemplateData_' + currentSlot, JSON.stringify(dataToSave));
         }
 
-        function loadData() {
-            const savedData = localStorage.getItem('charTemplateData');
+        function loadData(slotNumber = 1) {
+            // 💡 기존 데이터 안전망: 처음 업데이트 후 접속 시, 기존에 쓰던 데이터를 1번 슬롯으로 자동 복사
+            if (slotNumber === 1 && !localStorage.getItem('charTemplateData_1') && localStorage.getItem('charTemplateData')) {
+                localStorage.setItem('charTemplateData_1', localStorage.getItem('charTemplateData'));
+            }
+
+            const savedData = localStorage.getItem('charTemplateData_' + slotNumber);
+            
             if (savedData) {
                 const dataArray = JSON.parse(savedData);
                 if (dataArray.length > 0) {
@@ -149,6 +184,7 @@
                     return;
                 }
             }
+            // 저장된 데이터가 없는 새 슬롯이면 빈 칸 1개 생성
             addRow();
         }
 
@@ -171,39 +207,29 @@
             element.style.height = (element.scrollHeight) + 'px';
         }
 
-        // ==========================================
-        // 💡 문제 해결 핵심: 시간차(setTimeout) 입력 기법
-        // ==========================================
+        // 한글 씹힘 방지가 적용된 단축키 입력 로직
         function insertShortcut(btn, text) {
-            if (btn) btn.blur(); // 버튼 눌림 시각적 해제
+            if (btn) btn.blur(); 
 
             if (lastFocusedTextarea) {
-                // 한글 조합이 온전히 끝날 수 있도록 아주 짧은 0.01초(10ms)의 시간을 벌어줍니다.
                 setTimeout(() => {
                     const start = lastFocusedTextarea.selectionStart;
                     const end = lastFocusedTextarea.selectionEnd;
                     const currentValue = lastFocusedTextarea.value;
                     
-                    // 글자 삽입
                     lastFocusedTextarea.value = currentValue.substring(0, start) + text + currentValue.substring(end);
-                    
-                    // 커서 위치 이동
                     lastFocusedTextarea.selectionStart = lastFocusedTextarea.selectionEnd = start + text.length;
                     
                     adjustHeight(lastFocusedTextarea);
                     updateCharCount();
                     saveData();
-                    
-                    // 다시 타이핑할 수 있도록 포커스 되돌리기
                     lastFocusedTextarea.focus();
                 }, 10);
             }
         }
-        // ==========================================
 
         function moveRow(btn, direction) {
             if (btn) btn.blur();
-
             if (!lastFocusedTextarea) return;
             const currentRow = lastFocusedTextarea.closest('.item-row');
             if (!currentRow) return;
@@ -227,14 +253,12 @@
 
         function copyFocusedField(btn) {
             if (btn) btn.blur();
-
             if (lastFocusedTextarea) {
                 const textToCopy = lastFocusedTextarea.value;
                 navigator.clipboard.writeText(textToCopy).then(() => {
                     copyBtn.textContent = '완료!';
                     setTimeout(() => { copyBtn.textContent = '복사'; }, 1000);
                 }).catch(err => {
-                    console.log('클립보드 복사 실패:', err);
                     alert('복사에 실패했습니다.');
                 });
                 lastFocusedTextarea.focus();
@@ -267,7 +291,6 @@
 
         function deleteRow(btn) {
             if (btn) btn.blur();
-
             const row = btn.parentElement;
             row.remove();
             if (itemList.children.length === 0) {
@@ -299,7 +322,8 @@
             updateBarPosition();
         }
 
-        loadData();
+        // 페이지 첫 로드 시 1번 슬롯 데이터를 불러옵니다.
+        loadData(1);
     </script>
 </body>
 </html>
