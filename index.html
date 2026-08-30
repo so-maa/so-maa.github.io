@@ -8,16 +8,18 @@
         body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; padding: 40px 20px; padding-bottom: 150px; margin: 0; }
         .container { width: 100%; max-width: 600px; }
         
-        /* 💡 새롭게 추가된 슬롯 영역 스타일 */
         .slot-container { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 15px; }
         .slot-btn { background-color: #24283b; color: #565f89; border: 1px solid #414868; border-radius: 6px; width: 32px; height: 32px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0; }
         .slot-btn.active { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
-        .header .title-area { display: flex; align-items: center; } 
+        .header .title-area { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; } /* 버튼이 늘어나도 안 깨지도록 간격과 자동 줄바꿈 추가 */
         .header .title-mark { color: #f7768e; margin-right: 5px; }
         
-        .copy-all-btn { background-color: transparent; color: #7aa2f7; border: 1px solid #7aa2f7; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: bold; margin-left: 12px; cursor: pointer; transition: all 0.2s; }
+        .copy-all-btn { background-color: transparent; color: #7aa2f7; border: 1px solid #7aa2f7; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        
+        /* 💡 템플릿 붙이기 버튼 전용 스타일 (눈에 띄게 연한 초록색으로 설정) */
+        .template-paste-btn { background-color: rgba(158, 206, 106, 0.1); color: #9ece6a; border-color: #9ece6a; }
 
         .item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
         textarea { background-color: #24283b; color: #c0caf5; border: none; border-radius: 8px; padding: 12px 15px; font-size: 16px; font-family: inherit; resize: none; overflow: hidden; min-height: 24px; line-height: 1.5; box-sizing: border-box; outline: none; }
@@ -44,6 +46,7 @@
             .delete-btn:hover { color: #f7768e; }
             .add-btn:hover { border-color: #7aa2f7; background-color: rgba(122, 162, 247, 0.1); }
             .copy-all-btn:hover { background-color: #7aa2f7; color: #1a1b26; } 
+            .template-paste-btn:hover { background-color: #9ece6a; color: #1a1b26; }
             .slot-btn:hover:not(.active) { background-color: #414868; color: #c0caf5; }
         }
         
@@ -52,13 +55,13 @@
         .delete-btn:active { color: #f7768e; }
         .add-btn:active { border-color: #7aa2f7; background-color: rgba(122, 162, 247, 0.1); }
         .copy-all-btn:active { background-color: #7aa2f7; color: #1a1b26; } 
+        .template-paste-btn:active { background-color: #9ece6a; color: #1a1b26; }
         .slot-btn:active:not(.active) { background-color: #414868; color: #c0caf5; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- 💡 멀티 슬롯(1~5) 버튼 영역 -->
         <div class="slot-container">
             <button class="slot-btn active" id="slot-1" onclick="switchSlot(1)">1</button>
             <button class="slot-btn" id="slot-2" onclick="switchSlot(2)">2</button>
@@ -71,6 +74,9 @@
             <div class="title-area">
                 <div><span class="title-mark">*</span>항목</div>
                 <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllData(this)">전체 복사</button>
+                <button class="copy-all-btn" id="copyTemplateBtn" onclick="copyTemplateData(this)">템플릿 복사</button>
+                <!-- 💡 숨겨져 있다가 필요할 때만 나타나는 템플릿 붙이기 버튼 -->
+                <button class="copy-all-btn template-paste-btn" id="pasteTemplateBtn" onclick="pasteTemplateData(this)" style="display: none;">템플릿 붙이기</button>
             </div>
             <div id="charCount" style="color: #565f89; font-size: 14px;">0 / 1,000</div>
         </div>
@@ -82,7 +88,6 @@
 
     <div class="shortcut-bar" id="shortcutBar">
         <button class="shortcut-btn" onclick="insertShortcut(this, '→')">→</button>
-        <!-- 💡 ↔ 단축키 추가 (기존 안전 로직 100% 동일 적용) -->
         <button class="shortcut-btn" onclick="insertShortcut(this, '↔')">↔</button>
         <button class="shortcut-btn" onclick="insertShortcut(this, '·')">·</button>
         <button class="shortcut-btn" onclick="insertShortcut(this, 'char')">char</button>
@@ -102,33 +107,101 @@
         const shortcutBar = document.getElementById('shortcutBar');
         const copyBtn = document.getElementById('copyBtn');
         const copyAllBtn = document.getElementById('copyAllBtn');
+        const copyTemplateBtn = document.getElementById('copyTemplateBtn');
+        const pasteTemplateBtn = document.getElementById('pasteTemplateBtn');
         
         let lastFocusedTextarea = null;
-        let currentSlot = 1; // 현재 선택된 슬롯 번호 (기본 1번)
+        let currentSlot = 1; 
 
         // ==========================================
-        // 💡 새롭게 추가된 기능: 멀티 슬롯(템플릿) 스위칭
+        // 💡 새롭게 추가된 기능: 템플릿 복사 & 붙이기
         // ==========================================
+        
+        // 1. 현재 슬롯의 템플릿 구조를 복사해서 기억(클립보드 저장)하는 함수
+        function copyTemplateData(btn) {
+            if (btn) btn.blur();
+            
+            const rows = document.querySelectorAll('.item-row');
+            const dataToCopy = [];
+            rows.forEach(row => {
+                const nameStr = row.querySelector('.item-name').value;
+                const valueStr = row.querySelector('.item-value').value;
+                dataToCopy.push({ name: nameStr, value: valueStr });
+            });
+
+            // 브라우저 저장소에 '가상 클립보드' 형태로 임시 저장
+            localStorage.setItem('clipboardTemplateData', JSON.stringify(dataToCopy));
+            // 몇 번 슬롯에서 복사했는지 기록 (원본 슬롯에는 붙이기 버튼을 안 띄우기 위함)
+            localStorage.setItem('clipboardSourceSlot', currentSlot.toString());
+
+            // 시각적 피드백
+            copyTemplateBtn.textContent = '복사 완료!';
+            setTimeout(() => { copyTemplateBtn.textContent = '템플릿 복사'; }, 1000);
+
+            // 상태 체크 업데이트 (현재 슬롯이 원본이므로 붙이기 버튼은 숨겨짐)
+            checkClipboardState();
+        }
+
+        // 2. 다른 슬롯에 복사해둔 템플릿을 붙여넣는 함수
+        function pasteTemplateData(btn) {
+            if (btn) btn.blur();
+
+            const savedClipboard = localStorage.getItem('clipboardTemplateData');
+            if (savedClipboard) {
+                const dataArray = JSON.parse(savedClipboard);
+                
+                // 현재 슬롯의 화면을 싹 비우고
+                itemList.innerHTML = '';
+                
+                // 복사해둔 데이터로 줄을 새로 생성
+                if (dataArray.length > 0) {
+                    dataArray.forEach(item => addRow(null, item.name, item.value));
+                } else {
+                    addRow();
+                }
+
+                // 덮어쓴 내용을 현재 슬롯에 완전 저장
+                saveData();
+                
+                // 붙여넣기가 끝났으므로 클립보드 비우기 (버튼을 없애기 위해)
+                localStorage.removeItem('clipboardTemplateData');
+                localStorage.removeItem('clipboardSourceSlot');
+                
+                // 상태 체크 업데이트 (붙이기 버튼 사라짐)
+                checkClipboardState();
+            }
+        }
+
+        // 3. 상황에 따라 [템플릿 붙이기] 버튼을 띄울지 숨길지 결정하는 함수
+        function checkClipboardState() {
+            const hasData = localStorage.getItem('clipboardTemplateData');
+            const sourceSlot = parseInt(localStorage.getItem('clipboardSourceSlot'));
+
+            // 복사된 데이터가 있고, 그 데이터를 복사한 원본 슬롯이 현재 슬롯이 아니라면!
+            if (hasData && sourceSlot !== currentSlot) {
+                pasteTemplateBtn.style.display = 'inline-block'; // 붙이기 버튼 등장
+            } else {
+                pasteTemplateBtn.style.display = 'none'; // 그 외에는 숨김
+            }
+        }
+        // ==========================================
+
         function switchSlot(slotNumber) {
-            if (currentSlot === slotNumber) return; // 같은 슬롯을 또 누르면 무시
-
-            // 1. 이동하기 전에 현재 작업 중이던 데이터 저장
+            if (currentSlot === slotNumber) return; 
             saveData();
-
-            // 2. 슬롯 번호 변경 및 버튼 UI 업데이트
+            
             currentSlot = slotNumber;
             document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('slot-' + slotNumber).classList.add('active');
 
-            // 3. 커서 포커스 초기화 및 화면 비우기
             lastFocusedTextarea = null;
             itemList.innerHTML = '';
 
-            // 4. 새로운 슬롯의 데이터 불러오기
             loadData(slotNumber);
+            
+            // 💡 슬롯을 이동할 때마다 붙이기 버튼을 띄워야 할지 체크합니다.
+            checkClipboardState();
         }
-
-        // ==========================================
 
         function copyAllData(btn) {
             if (btn) btn.blur(); 
@@ -165,12 +238,10 @@
                 const valueStr = row.querySelector('.item-value').value;
                 dataToSave.push({ name: nameStr, value: valueStr });
             });
-            // 💡 현재 선택된 슬롯 번호에 맞춰서 따로 저장합니다 (예: charTemplateData_1)
             localStorage.setItem('charTemplateData_' + currentSlot, JSON.stringify(dataToSave));
         }
 
         function loadData(slotNumber = 1) {
-            // 💡 기존 데이터 안전망: 처음 업데이트 후 접속 시, 기존에 쓰던 데이터를 1번 슬롯으로 자동 복사
             if (slotNumber === 1 && !localStorage.getItem('charTemplateData_1') && localStorage.getItem('charTemplateData')) {
                 localStorage.setItem('charTemplateData_1', localStorage.getItem('charTemplateData'));
             }
@@ -181,11 +252,12 @@
                 const dataArray = JSON.parse(savedData);
                 if (dataArray.length > 0) {
                     dataArray.forEach(item => addRow(null, item.name, item.value));
+                    checkClipboardState(); // 화면 불러오고 버튼 상태 체크
                     return;
                 }
             }
-            // 저장된 데이터가 없는 새 슬롯이면 빈 칸 1개 생성
             addRow();
+            checkClipboardState();
         }
 
         document.addEventListener('focusin', function(e) {
@@ -207,10 +279,8 @@
             element.style.height = (element.scrollHeight) + 'px';
         }
 
-        // 한글 씹힘 방지가 적용된 단축키 입력 로직
         function insertShortcut(btn, text) {
             if (btn) btn.blur(); 
-
             if (lastFocusedTextarea) {
                 setTimeout(() => {
                     const start = lastFocusedTextarea.selectionStart;
@@ -322,7 +392,6 @@
             updateBarPosition();
         }
 
-        // 페이지 첫 로드 시 1번 슬롯 데이터를 불러옵니다.
         loadData(1);
     </script>
 </body>
