@@ -8,7 +8,6 @@
         body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; padding: 40px 20px; padding-bottom: 150px; margin: 0; }
         .container { width: 100%; max-width: 600px; }
         
-        /* 💡 상단 트래커 및 슬롯 라인 레이아웃 */
         .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .tracker-title { font-size: 20px; font-weight: bold; color: #c0caf5; letter-spacing: 0.5px; }
         
@@ -16,12 +15,17 @@
         .slot-btn { background-color: #24283b; color: #565f89; border: 1px solid #414868; border-radius: 6px; width: 32px; height: 32px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0; }
         .slot-btn.active { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
 
-        /* 💡 기능 버튼 라인 (항목이 있던 자리에 일렬 배치) */
-        .header-actions { display: flex; align-items: center; gap: 6px; margin-bottom: 20px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+        /* 💡 기능 버튼과 글자 수 카운트를 나란히 배치하기 위한 래퍼(Wrapper) 추가 */
+        .header-actions-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
+        
+        .header-actions { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; flex-grow: 1; }
         .header-actions::-webkit-scrollbar { display: none; }
         
         .action-btn { background-color: transparent; color: #7aa2f7; border: 1px solid #7aa2f7; border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
         .template-paste-btn { background-color: rgba(158, 206, 106, 0.1); color: #9ece6a; border-color: #9ece6a; }
+
+        /* 💡 글자 수 카운트 전용 스타일 */
+        .char-count { color: #565f89; font-size: 14px; white-space: nowrap; flex-shrink: 0; padding-bottom: 4px; }
 
         .item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
         textarea { background-color: #24283b; color: #c0caf5; border: none; border-radius: 8px; padding: 12px 15px; font-size: 16px; font-family: inherit; resize: none; overflow: hidden; min-height: 24px; line-height: 1.5; box-sizing: border-box; outline: none; }
@@ -33,11 +37,12 @@
         .delete-btn { background: none; border: none; color: #565f89; font-size: 18px; cursor: pointer; padding: 12px 5px; transition: color 0.2s; }
         .add-btn { width: 100%; background-color: transparent; color: #7aa2f7; border: 1.5px dashed #414868; border-radius: 8px; padding: 15px; font-size: 16px; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
         
-        .shortcut-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: rgba(36, 40, 59, 0.95); backdrop-filter: blur(5px); padding: 10px 15px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; gap: 6px; align-items: center; z-index: 1000; max-width: 95vw; overflow-x: auto; white-space: nowrap; }
+        /* 💡 단축키 바 전체 높이 및 버튼 크기 3px 축소 */
+        .shortcut-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: rgba(36, 40, 59, 0.95); backdrop-filter: blur(5px); padding: 8px 12px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; gap: 6px; align-items: center; z-index: 1000; max-width: 95vw; overflow-x: auto; white-space: nowrap; }
         .shortcut-bar::-webkit-scrollbar { display: none; }
 
-        .shortcut-btn { background-color: #414868; color: #c0caf5; border: none; border-radius: 20px; padding: 8px 12px; font-size: 14px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
-        .divider { width: 1px; height: 20px; background-color: #565f89; margin: 0 2px; flex-shrink: 0; }
+        .shortcut-btn { background-color: #414868; color: #c0caf5; border: none; border-radius: 18px; padding: 5px 9px; font-size: 12px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
+        .divider { width: 1px; height: 16px; background-color: #565f89; margin: 0 2px; flex-shrink: 0; }
         .copy-btn { background-color: #9ece6a; color: #1a1b26; }
         .move-btn { background-color: #24283b; border: 1px solid #565f89; }
 
@@ -53,11 +58,9 @@
         
         .modal-confirm-btn { width: 100%; background-color: #7aa2f7; color: #1a1b26; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
 
-        /* 💡 4가지 선택 모드 버튼 스타일 */
         .merge-btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
         .merge-option-btn { width: 100%; background-color: #1a1b26; color: #c0caf5; border: 1px solid #414868; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: left; transition: all 0.2s; }
-        .merge-option-btn:hover { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
-
+        
         @media (hover: hover) {
             .shortcut-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
             .copy-btn:hover { background-color: #73daca; }
@@ -68,7 +71,7 @@
             .slot-btn:hover:not(.active) { background-color: #414868; color: #c0caf5; }
             .modal-close-btn:hover { color: #f7768e; }
             .modal-confirm-btn:hover { background-color: #8db0f8; }
-            .merge-option-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
+            .merge-option-btn:hover { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
         }
         
         .shortcut-btn:active { background-color: #7aa2f7; color: #1a1b26; }
@@ -78,13 +81,13 @@
         .action-btn:active { background-color: #7aa2f7; color: #1a1b26; } 
         .template-paste-btn:active { background-color: #9ece6a; color: #1a1b26; }
         .slot-btn:active:not(.active) { background-color: #414868; color: #c0caf5; }
-        .merge-option-btn:active { background-color: #7aa2f7; color: #1a1b26; }
+        .merge-option-btn:active { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- 💡 상단 트래커 타이틀 및 슬롯 번호 라인 -->
+        <!-- 상단 트래커 및 슬롯 번호 -->
         <div class="top-nav-bar">
             <div class="tracker-title">트래커</div>
             <div class="slot-container">
@@ -96,12 +99,16 @@
             </div>
         </div>
 
-        <!-- 💡 기능 버튼들을 일렬로 배치한 헤더 영역 -->
-        <div class="header-actions">
-            <button class="action-btn" id="copyAllBtn" onclick="copyAllData(this)">전체 복사</button>
-            <button class="action-btn" onclick="openImportModal(this)">붙여넣기</button>
-            <button class="action-btn" id="copyTemplateBtn" onclick="copyTemplateData(this)">템플릿 복사</button>
-            <button class="action-btn template-paste-btn" id="pasteTemplateBtn" onclick="triggerTemplatePaste(this)" style="display: none;">템플릿 붙이기</button>
+        <!-- 💡 기능 버튼과 복구된 글자 수 카운트 래퍼 -->
+        <div class="header-actions-wrapper">
+            <div class="header-actions">
+                <button class="action-btn" id="copyAllBtn" onclick="copyAllData(this)">전체 복사</button>
+                <button class="action-btn" onclick="openImportModal(this)">붙여넣기</button>
+                <button class="action-btn" id="copyTemplateBtn" onclick="copyTemplateData(this)">템플릿 복사</button>
+                <button class="action-btn template-paste-btn" id="pasteTemplateBtn" onclick="triggerTemplatePaste(this)" style="display: none;">템플릿 붙이기</button>
+            </div>
+            <!-- 복구된 글자 수 카운트 영역 -->
+            <div id="charCount" class="char-count">0 / 1,000</div>
         </div>
 
         <div id="itemList"></div>
@@ -109,7 +116,7 @@
         <button class="add-btn" onclick="addRow(this)">+ 항목 추가</button>
     </div>
 
-    <!-- 💡 외부 텍스트 입력 모달 -->
+    <!-- 외부 텍스트 입력 모달 -->
     <div id="importModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <button class="modal-close-btn" onclick="closeImportModal()">✕</button>
@@ -120,7 +127,7 @@
         </div>
     </div>
 
-    <!-- 💡 기존 내용이 있을 때 나타나는 4가지 병합 선택 모달 -->
+    <!-- 기존 내용 병합 선택 모달 -->
     <div id="mergeModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <button class="modal-close-btn" onclick="closeMergeModal()">✕</button>
@@ -135,6 +142,7 @@
         </div>
     </div>
 
+    <!-- 작아진 단축키 바 -->
     <div class="shortcut-bar" id="shortcutBar">
         <button class="shortcut-btn" onclick="insertShortcut(this, '→')">→</button>
         <button class="shortcut-btn" onclick="insertShortcut(this, '↔')">↔</button>
@@ -152,6 +160,7 @@
 
     <script>
         const itemList = document.getElementById('itemList');
+        const charCountDisplay = document.getElementById('charCount');
         const shortcutBar = document.getElementById('shortcutBar');
         const copyBtn = document.getElementById('copyBtn');
         const copyAllBtn = document.getElementById('copyAllBtn');
@@ -164,11 +173,8 @@
 
         let lastFocusedTextarea = null;
         let currentSlot = 1; 
-        let pendingImportData = null; // 병합 모달에서 사용할 대기 중인 데이터
+        let pendingImportData = null;
 
-        // ==========================================
-        // 💡 텍스트 파싱 유틸리티 함수
-        // ==========================================
         function parseTextToItems(text) {
             const lines = text.split('\n');
             let parsedItems = [];
@@ -188,7 +194,6 @@
             return parsedItems;
         }
 
-        // 현재 슬롯이 완전히 비어있는지 확인하는 함수
         function isCurrentSlotEmpty() {
             const rows = document.querySelectorAll('.item-row');
             if (rows.length === 0) return true;
@@ -200,9 +205,6 @@
             return false;
         }
 
-        // ==========================================
-        // 💡 [붙여넣기] 및 [템플릿 붙이기] 통합 공통 분기 처리
-        // ==========================================
         function openImportModal(btn) {
             if (btn) btn.blur();
             importModal.style.display = 'flex';
@@ -234,13 +236,11 @@
             const newItems = JSON.parse(savedClipboard);
             handleIncomingData(newItems);
 
-            // 템플릿 붙이기 완료 후 클립보드 데이터 정리
             localStorage.removeItem('clipboardTemplateData');
             localStorage.removeItem('clipboardSourceSlot');
             checkClipboardState();
         }
 
-        // 데이터가 들어왔을 때 빈 슬롯인지, 내용이 있는지 판별하여 모달을 띄우거나 바로 적용
         function handleIncomingData(newItems) {
             if (isCurrentSlotEmpty()) {
                 applyMergeData('overwrite', newItems);
@@ -250,9 +250,6 @@
             }
         }
 
-        // ==========================================
-        // 💡 4가지 병합 모드 실행 로직
-        // ==========================================
         function executeMerge(mode) {
             if (!pendingImportData) return;
             const dataToProcess = pendingImportData;
@@ -281,26 +278,21 @@
             } else if (mode === 'bottom') {
                 finalItems = [...existingItems, ...newItems];
             } else if (mode === 'match') {
-                // 기존 내용 순서에 맞게 붙여넣기 (기존 항목명 뒤에 새 항목들을 차례대로 매칭 혹은 하단 추가)
                 let map = {};
                 existingItems.forEach(item => {
                     if (!map[item.name]) map[item.name] = [];
                     map[item.name].push(item.value);
                 });
 
-                // 기존에 있는 이름의 항목들은 해당 위치 아래에 값을 이어붙이고, 새로운 이름은 맨 아래로 보냄
                 let processedNames = new Set();
                 existingItems.forEach(item => {
                     if (!processedNames.has(item.name)) {
                         processedNames.add(item.name);
-                        // 기존 값들 추가
                         map[item.name].forEach(val => finalItems.push({ name: item.name, value: val }));
-                        // 새로 들어온 데이터 중 이름이 일치하는 것들 추가
                         newItems.filter(ni => ni.name === item.name).forEach(ni => finalItems.push(ni));
                     }
                 });
 
-                // 기존에 없던 완전히 새로운 이름의 항목들은 최하단에 추가
                 newItems.forEach(ni => {
                     if (!processedNames.has(ni.name)) {
                         finalItems.push(ni);
@@ -308,7 +300,6 @@
                 });
             }
 
-            // 화면 반영 및 저장
             itemList.innerHTML = '';
             if (finalItems.length > 0) {
                 finalItems.forEach(item => addRow(null, item.name, item.value));
@@ -318,9 +309,6 @@
             saveData();
         }
 
-        // ==========================================
-        // 템플릿 복사 상태 관리
-        // ==========================================
         function copyTemplateData(btn) {
             if (btn) btn.blur();
             const rows = document.querySelectorAll('.item-row');
@@ -531,13 +519,16 @@
             }
         }
 
+        // 💡 팝업창(모달)의 글자 수는 세지 않도록 수정된 글자 수 카운팅 함수
         function updateCharCount() {
-            const textareas = document.querySelectorAll('textarea');
+            const textareas = document.querySelectorAll('.item-row textarea'); // 항목 입력창만 선택
             let totalLength = 0;
             textareas.forEach(textarea => {
                 totalLength += textarea.value.length;
             });
-            // (참고용 글자수 표시 엘리먼트가 상단에서 빠졌으므로 내부 계산용으로만 유지)
+            if(charCountDisplay) {
+                charCountDisplay.textContent = `${totalLength.toLocaleString()} / 1,000`;
+            }
         }
 
         if (window.visualViewport) {
