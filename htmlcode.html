@@ -3,348 +3,499 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>상태창 디자인 에디터</title>
+    <title>프로급 상태창 디자인 에디터</title>
     <style>
-        body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; padding: 20px; padding-bottom: 100px; margin: 0; }
-        .container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px; }
+        body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 20px; padding-bottom: 100px; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 20px; }
         
-        .header-title { font-size: 20px; font-weight: bold; color: #c0caf5; margin-bottom: 5px; border-bottom: 2px solid #414868; padding-bottom: 10px; }
+        .header-title { font-size: 22px; font-weight: bold; color: #c0caf5; margin-bottom: 5px; border-bottom: 2px solid #414868; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .section-title { font-size: 14px; font-weight: bold; color: #7aa2f7; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
         
+        /* 메인 레이아웃 (PC에서는 좌우 분할, 모바일에서는 상하 분할) */
+        .workspace { display: flex; flex-direction: column; gap: 20px; }
+        @media (min-width: 768px) { .workspace { flex-direction: row; align-items: flex-start; } }
+        
+        .left-panel { flex: 1; display: flex; flex-direction: column; gap: 20px; width: 100%; }
+        .right-panel { flex: 1; background-color: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 20px; position: sticky; top: 20px; width: 100%; box-sizing: border-box; }
+
         /* 미리보기 캔버스 */
-        .preview-box { background-color: #ffffff; background-image: radial-gradient(#e2e8f0 1px, transparent 0); background-size: 15px 15px; border: 2px dashed #565f89; border-radius: 12px; padding: 20px; min-height: 150px; overflow-x: hidden; color: #333; }
+        .preview-box { background-color: #ffffff; background-image: radial-gradient(#e2e8f0 1px, transparent 0); background-size: 15px 15px; border: 2px dashed #565f89; border-radius: 12px; padding: 20px; min-height: 200px; overflow-x: hidden; color: #333; }
 
-        /* 컨트롤 패널 (추가 버튼) */
-        .palette-group { display: flex; gap: 8px; flex-wrap: wrap; }
-        .add-btn { background-color: #414868; color: #c0caf5; border: none; border-radius: 8px; padding: 10px 15px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; flex-grow: 1; }
-        .add-btn:active { background-color: #7aa2f7; color: #1a1b26; }
+        /* 레이어 트리 구조 */
+        .layer-tree { background-color: #1f2335; border: 1px solid #414868; border-radius: 12px; padding: 15px; min-height: 150px; }
+        .layer-node { margin-bottom: 5px; }
+        .layer-content { display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #24283b; border: 1px solid #414868; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .layer-content.active { border-color: #7aa2f7; box-shadow: 0 0 0 1px #7aa2f7; }
+        .layer-info { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: bold; color: #c0caf5; }
+        .layer-actions { display: flex; gap: 5px; }
+        .layer-actions button { background: none; border: none; color: #565f89; cursor: pointer; font-size: 14px; padding: 2px 5px; }
+        
+        /* 자식 요소 들여쓰기 */
+        .children-container { padding-left: 20px; border-left: 2px dashed #414868; margin-top: 5px; margin-left: 10px; display: flex; flex-direction: column; gap: 5px; }
+        
+        .add-btn { background-color: #414868; color: #c0caf5; border: none; border-radius: 6px; padding: 6px 10px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
 
-        /* 레이어 리스트 */
-        .layer-list { display: flex; flex-direction: column; gap: 10px; }
-        .layer-item { background-color: #24283b; border: 1px solid #414868; border-radius: 8px; overflow: hidden; }
-        .layer-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: #1f2335; cursor: pointer; }
-        .layer-title { font-size: 14px; font-weight: bold; color: #c0caf5; display: flex; align-items: center; gap: 8px; }
-        .layer-actions button { background: none; border: none; color: #565f89; font-size: 16px; cursor: pointer; padding: 0 5px; }
-        .layer-actions button.delete { color: #f7768e; }
+        /* 우측 속성 편집기(Inspector) */
+        .empty-inspector { color: #565f89; text-align: center; margin-top: 50px; font-size: 14px; }
+        .prop-section { margin-bottom: 20px; border-bottom: 1px dashed #414868; padding-bottom: 15px; }
+        .prop-section:last-child { border-bottom: none; }
+        .prop-title { font-size: 12px; color: #9ece6a; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* 속성 편집기 (에디터) */
-        .inspector { padding: 15px; border-top: 1px solid #414868; display: none; flex-direction: column; gap: 12px; }
-        .inspector.active { display: flex; }
+        .prop-group { margin-bottom: 12px; }
+        .prop-group label { display: flex; justify-content: space-between; font-size: 12px; color: #a9b1d6; margin-bottom: 5px; }
         
-        .prop-group { display: flex; flex-direction: column; gap: 5px; }
-        .prop-group label { font-size: 12px; color: #7aa2f7; font-weight: bold; display: flex; justify-content: space-between; }
+        .inspector-input { background-color: #1a1b26; color: #c0caf5; border: 1px solid #414868; border-radius: 6px; padding: 8px 10px; font-size: 13px; width: 100%; box-sizing: border-box; font-family: inherit; outline: none; }
+        .inspector-input:focus { border-color: #7aa2f7; }
         
-        .inspector input[type="text"], .inspector textarea { background-color: #1a1b26; color: #c0caf5; border: 1px solid #414868; border-radius: 6px; padding: 10px; font-size: 13px; font-family: inherit; width: 100%; box-sizing: border-box; outline: none; }
-        .inspector textarea { resize: vertical; min-height: 50px; }
-        
-        /* 컬러 피커 및 슬라이더 묶음 */
         .flex-row { display: flex; gap: 10px; align-items: center; }
-        .flex-row input[type="color"] { width: 40px; height: 30px; padding: 0; border: none; border-radius: 4px; cursor: pointer; background: none; }
-        .flex-row input[type="range"] { flex-grow: 1; accent-color: #7aa2f7; }
+        .color-picker { width: 35px; height: 30px; padding: 0; border: none; background: none; cursor: pointer; }
+        input[type="range"] { flex-grow: 1; accent-color: #7aa2f7; }
         
-        /* 토글 버튼 그룹 (정렬, 굵기 등) */
-        .toggle-group { display: flex; border: 1px solid #414868; border-radius: 6px; overflow: hidden; }
-        .toggle-btn { flex: 1; background-color: #1a1b26; color: #565f89; border: none; padding: 8px; font-size: 12px; cursor: pointer; border-right: 1px solid #414868; }
+        .toggle-group { display: flex; border: 1px solid #414868; border-radius: 6px; overflow: hidden; width: 100%; }
+        .toggle-btn { flex: 1; background-color: #1a1b26; color: #565f89; border: none; padding: 6px; font-size: 12px; cursor: pointer; border-right: 1px solid #414868; }
         .toggle-btn:last-child { border-right: none; }
         .toggle-btn.active { background-color: #7aa2f7; color: #1a1b26; font-weight: bold; }
 
-        /* 결과 코드 영역 */
-        .code-box { background-color: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 8px; padding: 15px; font-family: Consolas, monospace; font-size: 12px; min-height: 100px; word-break: break-all; white-space: pre-wrap; }
+        /* 결과 코드 출력 */
+        .code-box { background-color: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 8px; padding: 15px; font-family: Consolas, monospace; font-size: 12px; min-height: 100px; word-break: break-all; white-space: pre-wrap; margin-top: 10px; }
         .copy-code-btn { background-color: #9ece6a; color: #1a1b26; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
         @media (hover: hover) {
+            .layer-content:hover { border-color: #7aa2f7; }
+            .layer-actions button:hover { color: #f7768e; }
             .add-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
-            .layer-actions button:hover { color: #c0caf5; }
             .copy-code-btn:hover { background-color: #73daca; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header-title">🎨 상태창 자유 디자인 에디터</div>
-
-        <!-- 1. 미리보기 캔버스 (흰 배경으로 실제 출력 느낌 부여) -->
-        <div>
-            <div class="section-title">👀 실시간 캔버스</div>
-            <div id="previewCanvas" class="preview-box"></div>
+    <div class="app-container">
+        <div class="header-title">
+            <span>🎨 프로급 상태창 빌더 (자유도 100%)</span>
+            <button class="add-btn" onclick="addNode('root', 'box')" style="background-color: #9ece6a; color: #1a1b26;">+ 최상위 박스 추가</button>
         </div>
 
-        <!-- 2. 요소 추가 버튼 -->
-        <div>
-            <div class="section-title">🧱 도형 및 텍스트 추가</div>
-            <div class="palette-group">
-                <button class="add-btn" onclick="addBlock('box')">🟦 텍스트 / 도형 상자</button>
-                <button class="add-btn" onclick="addBlock('accordion')">📂 접기 / 펼치기</button>
-                <button class="add-btn" onclick="addBlock('divider')">➖ 가로 구분선</button>
+        <div class="workspace">
+            <!-- 왼쪽 패널: 캔버스와 레이어 구조 -->
+            <div class="left-panel">
+                <div>
+                    <div class="section-title">👀 실시간 캔버스 (결과 미리보기)</div>
+                    <div id="previewCanvas" class="preview-box"></div>
+                </div>
+
+                <div>
+                    <div class="section-title">
+                        <span>📑 레이어 구조 (요소를 클릭해 편집하세요)</span>
+                    </div>
+                    <div id="layerTree" class="layer-tree"></div>
+                </div>
+                
+                <!-- 코드 출력부 -->
+                <div>
+                    <div class="section-title">
+                        <span>📝 최종 HTML 코드</span>
+                        <button class="copy-code-btn" onclick="copyCode(this)">코드 복사</button>
+                    </div>
+                    <div id="codeBox" class="code-box"></div>
+                </div>
             </div>
-        </div>
 
-        <!-- 3. 속성 편집기 (레이어 리스트) -->
-        <div>
-            <div class="section-title">🛠️ 레이어 편집기 (클릭하여 수정)</div>
-            <div id="layerList" class="layer-list"></div>
-        </div>
-
-        <!-- 4. 최종 코드 -->
-        <div>
-            <div class="section-title">
-                <span>📝 생성된 HTML 코드</span>
-                <button class="copy-code-btn" id="copyCodeBtn" onclick="copyResultCode(this)">코드 복사</button>
+            <!-- 오른쪽 패널: 속성 편집기 -->
+            <div class="right-panel">
+                <div class="section-title">🛠️ 속성 편집기</div>
+                <div id="inspectorPanel">
+                    <div class="empty-inspector">왼쪽 레이어에서 요소를 선택해주세요.</div>
+                </div>
             </div>
-            <div id="codeBox" class="code-box"></div>
         </div>
     </div>
 
     <script>
-        let blocks = [];
-        let activeBlockId = null;
+        // 전역 상태 관리
+        let nodes = []; 
+        let activeNodeId = null;
 
-        // 공통 속성 초기값 정의
-        function getDefaultStyles(type) {
-            if(type === 'divider') {
-                return { color: '#e2e8f0', size: '2', padding: '15' };
+        // 고유 ID 생성기
+        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
+        // 기본 스타일 템플릿
+        const defaultStyles = {
+            box: {
+                layout: 'block', // block, flex-row, flex-between
+                bgType: 'solid', // solid, gradient, transparent
+                bgColor: '#2a2a35', bgGrad1: '#fcf8f2', bgGrad2: '#f3ebd9',
+                borderStyle: 'solid', // solid, dashed, dotted, double, none
+                borderWidth: '1', borderColor: '#4B5563', borderRadius: '12',
+                padding: '20', margin: '10', shadow: 'none',
+                color: '#ffffff'
+            },
+            text: {
+                content: '여기에 내용을 입력하세요',
+                fontSize: '14', color: '#c0caf5', fontWeight: 'normal', textAlign: 'left',
+                margin: '0', padding: '0'
+            },
+            progress: {
+                label: '호감도', percent: '50',
+                trackBg: '#ebdcc9', barGrad1: '#d49e74', barGrad2: '#a86232', height: '6'
+            },
+            divider: {
+                borderStyle: 'dashed', borderWidth: '1', borderColor: '#d5c09e', margin: '15'
             }
-            return {
-                text: type === 'box' ? '새로운 텍스트 상자' : '숨겨진 내용',
-                title: type === 'accordion' ? '여기를 클릭하세요' : '',
-                textColor: '#333333',
-                bgColor: type === 'box' ? '#f1f5f9' : '#ffffff',
-                bgTransparent: false,
-                fontSize: '15',
-                fontWeight: 'normal',
-                textAlign: 'left',
-                borderRadius: '8',
-                padding: '15',
-                borderWidth: '0',
-                borderColor: '#000000'
-            };
-        }
+        };
 
-        // 요소 추가
-        function addBlock(type) {
-            const id = Date.now();
-            blocks.push({
-                id: id,
+        // 노드 추가 (parent가 'root'이면 최상위, 아니면 해당 ID의 children으로)
+        function addNode(parentId, type, e) {
+            if(e) e.stopPropagation();
+            
+            const newNode = {
+                id: generateId(),
                 type: type,
-                style: getDefaultStyles(type)
-            });
-            activeBlockId = id; // 추가하자마자 편집창 열기
-            renderAll();
-        }
+                style: JSON.parse(JSON.stringify(defaultStyles[type])), // 깊은 복사
+                children: [] // 박스(컨테이너)일 경우 자식을 가질 수 있음
+            };
 
-        function deleteBlock(index, e) {
-            e.stopPropagation();
-            blocks.splice(index, 1);
-            activeBlockId = null;
-            renderAll();
-        }
-
-        function moveBlock(index, direction, e) {
-            e.stopPropagation();
-            if (direction === 'up' && index > 0) {
-                [blocks[index - 1], blocks[index]] = [blocks[index], blocks[index - 1]];
-            } else if (direction === 'down' && index < blocks.length - 1) {
-                [blocks[index + 1], blocks[index]] = [blocks[index], blocks[index + 1]];
-            }
-            renderAll();
-        }
-
-        function toggleInspector(id) {
-            activeBlockId = activeBlockId === id ? null : id;
-            renderAll();
-        }
-
-        function updateStyle(id, key, value) {
-            const block = blocks.find(b => b.id === id);
-            if (block) {
-                block.style[key] = value;
-                renderPreviewAndCode(); // 입력할 때마다 실시간 렌더링
-                
-                // 표시 값 업데이트 (슬라이더 옆 숫자)
-                const valueDisplay = document.getElementById(`val_${id}_${key}`);
-                if(valueDisplay) valueDisplay.textContent = value;
-            }
-        }
-
-        // XSS 방지 및 줄바꿈 처리
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
-        }
-
-        // 💡 핵심: 허용된 태그와 인라인 스타일로만 HTML을 생성하는 로직
-        function generateHTML(block) {
-            const s = block.style;
-            // 플랫폼 필수 규격 강제 적용 (반응형, 줄바꿈 방지)
-            const baseRule = "box-sizing:border-box; max-width:100%; width:100%; word-break:keep-all; text-wrap:pretty;";
-            
-            if (block.type === 'box') {
-                const bg = s.bgTransparent ? 'transparent' : s.bgColor;
-                const border = s.borderWidth > 0 ? `${s.borderWidth}px solid ${s.borderColor}` : 'none';
-                const styleStr = `${baseRule} color:${s.textColor}; background-color:${bg}; font-size:${s.fontSize}px; font-weight:${s.fontWeight}; text-align:${s.textAlign}; border-radius:${s.borderRadius}px; padding:${s.padding}px; border:${border}; margin-bottom:10px;`;
-                
-                return `<div style="${styleStr}">${escapeHTML(s.text).replace(/\n/g, '<br>')}</div>`;
+            if (parentId === 'root') {
+                nodes.push(newNode);
+            } else {
+                const parent = findNode(nodes, parentId);
+                if (parent && parent.children) parent.children.push(newNode);
             }
             
-            if (block.type === 'accordion') {
-                const bg = s.bgTransparent ? 'transparent' : s.bgColor;
-                const border = s.borderWidth > 0 ? `${s.borderWidth}px solid ${s.borderColor}` : 'none';
+            activeNodeId = newNode.id;
+            renderAll();
+        }
+
+        // 노드 삭제
+        function deleteNode(id, e) {
+            if(e) e.stopPropagation();
+            removeNodeRecursive(nodes, id);
+            if(activeNodeId === id) activeNodeId = null;
+            renderAll();
+        }
+
+        function removeNodeRecursive(list, id) {
+            for (let i = 0; i < list.length; i++) {
+                if (list[i].id === id) {
+                    list.splice(i, 1);
+                    return true;
+                }
+                if (list[i].children && removeNodeRecursive(list[i].children, id)) return true;
+            }
+            return false;
+        }
+
+        // 노드 찾기
+        function findNode(list, id) {
+            for (let node of list) {
+                if (node.id === id) return node;
+                if (node.children) {
+                    let found = findNode(node.children, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function selectNode(id, e) {
+            if(e) e.stopPropagation();
+            activeNodeId = id;
+            renderAll();
+        }
+
+        // 스타일 업데이트
+        function updateStyle(key, value) {
+            const node = findNode(nodes, activeNodeId);
+            if (node) {
+                node.style[key] = value;
                 
-                return `<details style="${baseRule} margin-bottom:10px;"><summary style="cursor:pointer; color:${s.textColor}; font-size:${s.fontSize}px; font-weight:bold; padding:8px 0;">${escapeHTML(s.title)}</summary><div style="color:${s.textColor}; background-color:${bg}; font-size:${s.fontSize}px; border-radius:${s.borderRadius}px; padding:${s.padding}px; border:${border}; margin-top:5px;">${escapeHTML(s.text).replace(/\n/g, '<br>')}</div></details>`;
+                // 표시용 숫자 업데이트
+                const display = document.getElementById(`val_${key}`);
+                if(display) display.textContent = value;
+                
+                renderPreviewAndCode();
+            }
+        }
+
+        // XSS 및 줄바꿈 처리
+        function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); }
+
+        // ==========================================
+        // 💡 핵심: 중첩 가능한 HTML 생성 엔진
+        // ==========================================
+        function generateHTML(node) {
+            const s = node.style;
+            const baseRule = "box-sizing:border-box; word-break:keep-all; text-wrap:pretty; max-width:100%; width:100%; ";
+            
+            if (node.type === 'box') {
+                let bgStr = '';
+                if(s.bgType === 'solid') bgStr = `background-color:${s.bgColor};`;
+                else if(s.bgType === 'gradient') bgStr = `background:linear-gradient(180deg, ${s.bgGrad1}, ${s.bgGrad2});`;
+                else bgStr = `background:transparent;`;
+
+                let borderStr = s.borderStyle === 'none' ? 'border:none;' : `border:${s.borderWidth}px ${s.borderStyle} ${s.borderColor};`;
+                let shadowStr = s.shadow === 'yes' ? 'box-shadow: 0 4px 15px rgba(0,0,0,0.15);' : '';
+                let layoutStr = s.layout === 'flex-row' ? 'display:flex; align-items:center; gap:10px;' : 
+                                s.layout === 'flex-between' ? 'display:flex; justify-content:space-between; align-items:center;' : 'display:block;';
+                
+                let styleStr = `${baseRule} ${bgStr} ${borderStr} border-radius:${s.borderRadius}px; padding:${s.padding}px; margin:${s.margin}px auto; color:${s.color}; ${shadowStr} ${layoutStr} position:relative; overflow:hidden;`;
+                
+                // 자식 요소 재귀 렌더링
+                let childrenHTML = node.children.map(child => generateHTML(child)).join('');
+                return `<div style="${styleStr}">${childrenHTML}</div>`;
+            }
+            
+            if (node.type === 'text') {
+                let styleStr = `${baseRule} font-size:${s.fontSize}px; color:${s.color}; font-weight:${s.fontWeight}; text-align:${s.textAlign}; margin:${s.margin}px 0; padding:${s.padding}px;`;
+                return `<div style="${styleStr}">${escapeHTML(s.content).replace(/\n/g, '<br>')}</div>`;
             }
 
-            if (block.type === 'divider') {
-                return `<hr style="${baseRule} border:0; border-top:${s.size}px solid ${s.color}; margin:${s.padding}px 0;">`;
+            if (node.type === 'divider') {
+                let borderStr = s.borderStyle === 'none' ? 'border:none;' : `border-top:${s.borderWidth}px ${s.borderStyle} ${s.borderColor};`;
+                return `<hr style="${baseRule} border:0; ${borderStr} margin:${s.margin}px 0;">`;
             }
+
+            if (node.type === 'progress') {
+                return `
+                <div style="${baseRule} margin:10px 0;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:bold; margin-bottom:4px; color:inherit;">
+                        <span>${escapeHTML(s.label)}</span><span>${s.percent}%</span>
+                    </div>
+                    <div style="width:100%; background-color:${s.trackBg}; height:${s.height}px; border-radius:10px; overflow:hidden;">
+                        <div style="width:${s.percent}%; height:100%; background:linear-gradient(90deg, ${s.barGrad1}, ${s.barGrad2}); border-radius:10px;"></div>
+                    </div>
+                </div>`;
+            }
+            return '';
+        }
+
+        // ==========================================
+        // UI 렌더링 (레이어 트리 + 캔버스)
+        // ==========================================
+        function renderAll() {
+            renderLayerTree();
+            renderInspector();
+            renderPreviewAndCode();
         }
 
         function renderPreviewAndCode() {
-            const previewCanvas = document.getElementById('previewCanvas');
+            const preview = document.getElementById('previewCanvas');
             const codeBox = document.getElementById('codeBox');
             
-            if(blocks.length === 0) {
-                previewCanvas.innerHTML = '<div style="text-align: center; color: #94a3b8; margin-top: 50px;">위에 있는 버튼을 눌러 요소를 추가하세요!</div>';
+            if (nodes.length === 0) {
+                preview.innerHTML = '<div style="text-align:center; color:#565f89; margin-top:50px;">최상위 박스를 추가하여 시작하세요.</div>';
                 codeBox.textContent = '';
                 return;
             }
 
-            let finalHTML = '';
-            blocks.forEach(block => {
-                finalHTML += generateHTML(block) + '\n';
-            });
-
-            previewCanvas.innerHTML = finalHTML;
-            codeBox.textContent = finalHTML;
+            let html = nodes.map(node => generateHTML(node)).join('\n');
+            preview.innerHTML = html;
+            codeBox.textContent = html;
         }
 
-        // 레이어 리스트 렌더링 (UI 조립)
-        function renderAll() {
-            const layerList = document.getElementById('layerList');
-            layerList.innerHTML = '';
-
-            blocks.forEach((block, index) => {
-                const s = block.style;
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'layer-item';
-                
-                let icon = block.type === 'box' ? '🟦' : block.type === 'accordion' ? '📂' : '➖';
-                let title = block.type === 'box' ? '텍스트/도형 상자' : block.type === 'accordion' ? '접기/펼치기' : '구분선';
-                const isActive = activeBlockId === block.id;
-
-                let html = `
-                    <div class="layer-header" onclick="toggleInspector(${block.id})">
-                        <div class="layer-title">${icon} ${title} ${isActive ? '▼' : '▶'}</div>
-                        <div class="layer-actions">
-                            <button onclick="moveBlock(${index}, 'up', event)">↑</button>
-                            <button onclick="moveBlock(${index}, 'down', event)">↓</button>
-                            <button class="delete" onclick="deleteBlock(${index}, event)">✕</button>
-                        </div>
-                    </div>
-                `;
-
-                // 편집기(Inspector) 영역
-                if (isActive) {
-                    html += `<div class="inspector active">`;
-                    
-                    if (block.type === 'divider') {
-                        html += `
-                            <div class="flex-row">
-                                <label style="color:#7aa2f7; font-size:12px; font-weight:bold;">선 색상</label>
-                                <input type="color" value="${s.color}" oninput="updateStyle(${block.id}, 'color', this.value)">
-                            </div>
-                            <div class="prop-group">
-                                <label>선 두께 <span id="val_${block.id}_size">${s.size}</span></label>
-                                <input type="range" min="1" max="10" value="${s.size}" oninput="updateStyle(${block.id}, 'size', this.value)">
-                            </div>
-                            <div class="prop-group">
-                                <label>위아래 여백 <span id="val_${block.id}_padding">${s.padding}</span></label>
-                                <input type="range" min="0" max="50" value="${s.padding}" oninput="updateStyle(${block.id}, 'padding', this.value)">
-                            </div>
-                        `;
-                    } else {
-                        // 공통 텍스트/도형 편집기
-                        if (block.type === 'accordion') {
-                            html += `<div class="prop-group"><label>제목 (버튼)</label><input type="text" value="${escapeHTML(s.title)}" oninput="updateStyle(${block.id}, 'title', this.value)"></div>`;
-                        }
-                        
-                        html += `
-                            <div class="prop-group">
-                                <label>내용</label>
-                                <textarea oninput="updateStyle(${block.id}, 'text', this.value)">${escapeHTML(s.text)}</textarea>
-                            </div>
-                            
-                            <div class="flex-row" style="margin-top:10px;">
-                                <div class="prop-group" style="flex:1;"><label>글자 색상</label><input type="color" value="${s.textColor}" oninput="updateStyle(${block.id}, 'textColor', this.value)"></div>
-                                <div class="prop-group" style="flex:1;">
-                                    <label>배경 색상 <span style="font-weight:normal; font-size:11px; cursor:pointer;"><input type="checkbox" ${s.bgTransparent ? 'checked' : ''} onchange="updateStyle(${block.id}, 'bgTransparent', this.checked)"> 투명</span></label>
-                                    <input type="color" value="${s.bgColor}" oninput="updateStyle(${block.id}, 'bgColor', this.value)" ${s.bgTransparent ? 'disabled' : ''}>
-                                </div>
-                            </div>
-
-                            <div class="prop-group">
-                                <label>글자 크기 <span id="val_${block.id}_fontSize">${s.fontSize}px</span></label>
-                                <input type="range" min="10" max="40" value="${s.fontSize}" oninput="updateStyle(${block.id}, 'fontSize', this.value)">
-                            </div>
-
-                            <div class="flex-row">
-                                <div class="toggle-group" style="flex:1;">
-                                    <button class="toggle-btn ${s.textAlign === 'left' ? 'active' : ''}" onclick="updateStyle(${block.id}, 'textAlign', 'left'); renderAll();">좌측</button>
-                                    <button class="toggle-btn ${s.textAlign === 'center' ? 'active' : ''}" onclick="updateStyle(${block.id}, 'textAlign', 'center'); renderAll();">중앙</button>
-                                    <button class="toggle-btn ${s.textAlign === 'right' ? 'active' : ''}" onclick="updateStyle(${block.id}, 'textAlign', 'right'); renderAll();">우측</button>
-                                </div>
-                                <div class="toggle-group" style="flex:1;">
-                                    <button class="toggle-btn ${s.fontWeight === 'normal' ? 'active' : ''}" onclick="updateStyle(${block.id}, 'fontWeight', 'normal'); renderAll();">일반</button>
-                                    <button class="toggle-btn ${s.fontWeight === 'bold' ? 'active' : ''}" onclick="updateStyle(${block.id}, 'fontWeight', 'bold'); renderAll();">굵게</button>
-                                </div>
-                            </div>
-
-                            <div class="prop-group" style="margin-top:10px;">
-                                <label>모서리 둥글기 (도형 만들기) <span id="val_${block.id}_borderRadius">${s.borderRadius}px</span></label>
-                                <input type="range" min="0" max="50" value="${s.borderRadius}" oninput="updateStyle(${block.id}, 'borderRadius', this.value)">
-                            </div>
-                            <div class="prop-group">
-                                <label>상자 안쪽 여백 (크기 조절) <span id="val_${block.id}_padding">${s.padding}px</span></label>
-                                <input type="range" min="0" max="50" value="${s.padding}" oninput="updateStyle(${block.id}, 'padding', this.value)">
-                            </div>
-
-                            <div class="flex-row">
-                                <div class="prop-group" style="flex:1;"><label>테두리 색상</label><input type="color" value="${s.borderColor}" oninput="updateStyle(${block.id}, 'borderColor', this.value)"></div>
-                                <div class="prop-group" style="flex:2;">
-                                    <label>테두리 두께 <span id="val_${block.id}_borderWidth">${s.borderWidth}px</span></label>
-                                    <input type="range" min="0" max="10" value="${s.borderWidth}" oninput="updateStyle(${block.id}, 'borderWidth', this.value)">
-                                </div>
-                            </div>
-                        `;
-                    }
-                    html += `</div>`;
-                }
-                
-                itemDiv.innerHTML = html;
-                layerList.appendChild(itemDiv);
-            });
-
-            renderPreviewAndCode();
-        }
-
-        function copyResultCode(btn) {
-            if(btn) btn.blur();
-            const textToCopy = document.getElementById('codeBox').textContent;
-            if(!textToCopy || blocks.length === 0) {
-                alert('복사할 코드가 없습니다!');
+        function renderLayerTree() {
+            const treeContainer = document.getElementById('layerTree');
+            if (nodes.length === 0) {
+                treeContainer.innerHTML = '<div style="color:#565f89; font-size:13px; text-align:center;">비어 있습니다.</div>';
                 return;
             }
+
+            function createNodeUI(nodeList) {
+                let html = '';
+                nodeList.forEach(node => {
+                    const isActive = node.id === activeNodeId ? 'active' : '';
+                    let icon = node.type === 'box' ? '🟦 박스' : node.type === 'text' ? '📝 텍스트' : node.type === 'progress' ? '📊 바' : '➖ 선';
+                    
+                    html += `<div class="layer-node">
+                        <div class="layer-content ${isActive}" onclick="selectNode('${node.id}', event)">
+                            <div class="layer-info">${icon}</div>
+                            <div class="layer-actions">
+                                ${node.type === 'box' ? `
+                                    <button onclick="addNode('${node.id}', 'box', event)" title="박스 추가">📦</button>
+                                    <button onclick="addNode('${node.id}', 'text', event)" title="텍스트 추가">T</button>
+                                    <button onclick="addNode('${node.id}', 'progress', event)" title="진행바 추가">📊</button>
+                                    <button onclick="addNode('${node.id}', 'divider', event)" title="구분선 추가">➖</button>
+                                ` : ''}
+                                <button onclick="deleteNode('${node.id}', event)">✕</button>
+                            </div>
+                        </div>`;
+                        
+                    if (node.children && node.children.length > 0) {
+                        html += `<div class="children-container">${createNodeUI(node.children)}</div>`;
+                    }
+                    html += `</div>`;
+                });
+                return html;
+            }
+            treeContainer.innerHTML = createNodeUI(nodes);
+        }
+
+        // ==========================================
+        // 동적 속성 편집기 (Inspector) 생성
+        // ==========================================
+        function renderInspector() {
+            const panel = document.getElementById('inspectorPanel');
+            const node = findNode(nodes, activeNodeId);
             
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const origin = btn.textContent;
+            if (!node) {
+                panel.innerHTML = '<div class="empty-inspector">왼쪽 레이어에서 요소를 선택해주세요.</div>';
+                return;
+            }
+
+            const s = node.style;
+            let html = '';
+
+            // 1. 박스(Container) 에디터
+            if (node.type === 'box') {
+                html += `
+                <div class="prop-section">
+                    <div class="prop-title">배경 및 레이아웃</div>
+                    <div class="prop-group">
+                        <label>박스 배열 방식</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn ${s.layout === 'block' ? 'active' : ''}" onclick="updateStyle('layout', 'block')">세로형</button>
+                            <button class="toggle-btn ${s.layout === 'flex-row' ? 'active' : ''}" onclick="updateStyle('layout', 'flex-row')">가로형</button>
+                            <button class="toggle-btn ${s.layout === 'flex-between' ? 'active' : ''}" onclick="updateStyle('layout', 'flex-between')">양끝배치</button>
+                        </div>
+                    </div>
+                    <div class="prop-group">
+                        <label>배경 타입</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn ${s.bgType === 'solid' ? 'active' : ''}" onclick="updateStyle('bgType', 'solid')">단색</button>
+                            <button class="toggle-btn ${s.bgType === 'gradient' ? 'active' : ''}" onclick="updateStyle('bgType', 'gradient')">그라데이션</button>
+                            <button class="toggle-btn ${s.bgType === 'transparent' ? 'active' : ''}" onclick="updateStyle('bgType', 'transparent')">투명</button>
+                        </div>
+                    </div>
+                    ${s.bgType === 'solid' ? `
+                        <div class="flex-row prop-group"><label style="margin:0; flex:1;">단색 색상</label><input type="color" class="color-picker" value="${s.bgColor}" oninput="updateStyle('bgColor', this.value)"></div>
+                    ` : s.bgType === 'gradient' ? `
+                        <div class="flex-row prop-group"><label style="margin:0; flex:1;">그라데이션 색상 (상/하)</label>
+                        <input type="color" class="color-picker" value="${s.bgGrad1}" oninput="updateStyle('bgGrad1', this.value)">
+                        <input type="color" class="color-picker" value="${s.bgGrad2}" oninput="updateStyle('bgGrad2', this.value)"></div>
+                    ` : ''}
+                </div>
+
+                <div class="prop-section">
+                    <div class="prop-title">테두리 및 그림자 (Border & Shadow)</div>
+                    <div class="prop-group">
+                        <label>선 종류</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn ${s.borderStyle === 'solid' ? 'active' : ''}" onclick="updateStyle('borderStyle', 'solid')">실선</button>
+                            <button class="toggle-btn ${s.borderStyle === 'dashed' ? 'active' : ''}" onclick="updateStyle('borderStyle', 'dashed')">대시선</button>
+                            <button class="toggle-btn ${s.borderStyle === 'dotted' ? 'active' : ''}" onclick="updateStyle('borderStyle', 'dotted')">점선</button>
+                            <button class="toggle-btn ${s.borderStyle === 'double' ? 'active' : ''}" onclick="updateStyle('borderStyle', 'double')">이중선</button>
+                            <button class="toggle-btn ${s.borderStyle === 'none' ? 'active' : ''}" onclick="updateStyle('borderStyle', 'none')">없음</button>
+                        </div>
+                    </div>
+                    ${s.borderStyle !== 'none' ? `
+                        <div class="flex-row prop-group"><label style="margin:0; flex:1;">선 색상</label><input type="color" class="color-picker" value="${s.borderColor}" oninput="updateStyle('borderColor', this.value)"></div>
+                        <div class="prop-group"><label>선 굵기 <span id="val_borderWidth">${s.borderWidth}</span>px</label><input type="range" min="1" max="10" value="${s.borderWidth}" oninput="updateStyle('borderWidth', this.value)"></div>
+                    ` : ''}
+                    <div class="prop-group"><label>둥글기 (모서리) <span id="val_borderRadius">${s.borderRadius}</span>px</label><input type="range" min="0" max="100" value="${s.borderRadius}" oninput="updateStyle('borderRadius', this.value)"></div>
+                    <div class="prop-group">
+                        <label>그림자 효과</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn ${s.shadow === 'none' ? 'active' : ''}" onclick="updateStyle('shadow', 'none')">없음</button>
+                            <button class="toggle-btn ${s.shadow === 'yes' ? 'active' : ''}" onclick="updateStyle('shadow', 'yes')">그림자 켜기</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prop-section">
+                    <div class="prop-title">여백 (Spacing)</div>
+                    <div class="prop-group"><label>안쪽 여백 (Padding) <span id="val_padding">${s.padding}</span>px</label><input type="range" min="0" max="60" value="${s.padding}" oninput="updateStyle('padding', this.value)"></div>
+                    <div class="prop-group"><label>바깥 여백 (Margin) <span id="val_margin">${s.margin}</span>px</label><input type="range" min="0" max="60" value="${s.margin}" oninput="updateStyle('margin', this.value)"></div>
+                </div>
+                `;
+            }
+            
+            // 2. 텍스트 에디터
+            else if (node.type === 'text') {
+                html += `
+                <div class="prop-section">
+                    <div class="prop-title">내용 및 폰트</div>
+                    <div class="prop-group">
+                        <label>텍스트 내용 (엔터로 줄바꿈 가능)</label>
+                        <textarea class="inspector-input" rows="3" oninput="updateStyle('content', this.value)">${escapeHTML(s.content)}</textarea>
+                    </div>
+                    <div class="flex-row prop-group"><label style="margin:0; flex:1;">글자 색상</label><input type="color" class="color-picker" value="${s.color}" oninput="updateStyle('color', this.value)"></div>
+                    <div class="prop-group"><label>글자 크기 <span id="val_fontSize">${s.fontSize}</span>px</label><input type="range" min="10" max="40" value="${s.fontSize}" oninput="updateStyle('fontSize', this.value)"></div>
+                    
+                    <div class="prop-group">
+                        <label>정렬 및 굵기</label>
+                        <div class="flex-row">
+                            <div class="toggle-group">
+                                <button class="toggle-btn ${s.textAlign === 'left' ? 'active' : ''}" onclick="updateStyle('textAlign', 'left')">좌</button>
+                                <button class="toggle-btn ${s.textAlign === 'center' ? 'active' : ''}" onclick="updateStyle('textAlign', 'center')">중앙</button>
+                                <button class="toggle-btn ${s.textAlign === 'right' ? 'active' : ''}" onclick="updateStyle('textAlign', 'right')">우</button>
+                            </div>
+                            <div class="toggle-group">
+                                <button class="toggle-btn ${s.fontWeight === 'normal' ? 'active' : ''}" onclick="updateStyle('fontWeight', 'normal')">일반</button>
+                                <button class="toggle-btn ${s.fontWeight === 'bold' ? 'active' : ''}" onclick="updateStyle('fontWeight', 'bold')">굵게</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="prop-section">
+                    <div class="prop-title">여백 조정</div>
+                    <div class="prop-group"><label>안쪽 여백 <span id="val_padding">${s.padding}</span>px</label><input type="range" min="0" max="30" value="${s.padding}" oninput="updateStyle('padding', this.value)"></div>
+                    <div class="prop-group"><label>바깥 위아래 여백 <span id="val_margin">${s.margin}</span>px</label><input type="range" min="0" max="30" value="${s.margin}" oninput="updateStyle('margin', this.value)"></div>
+                </div>
+                `;
+            }
+
+            // 3. 진행바 에디터
+            else if (node.type === 'progress') {
+                html += `
+                <div class="prop-section">
+                    <div class="prop-title">진행바 설정</div>
+                    <div class="prop-group"><label>라벨 (예: 호감도)</label><input type="text" class="inspector-input" value="${escapeHTML(s.label)}" oninput="updateStyle('label', this.value)"></div>
+                    <div class="prop-group"><label>퍼센트(%) <span id="val_percent">${s.percent}</span>%</label><input type="range" min="0" max="100" value="${s.percent}" oninput="updateStyle('percent', this.value)"></div>
+                    
+                    <div class="prop-group" style="margin-top:15px;"><label>바 두께 <span id="val_height">${s.height}</span>px</label><input type="range" min="2" max="20" value="${s.height}" oninput="updateStyle('height', this.value)"></div>
+                    <div class="flex-row prop-group"><label style="margin:0; flex:1;">빈 배경 색상</label><input type="color" class="color-picker" value="${s.trackBg}" oninput="updateStyle('trackBg', this.value)"></div>
+                    <div class="flex-row prop-group"><label style="margin:0; flex:1;">채워진 그라데이션 (시작/끝)</label>
+                        <input type="color" class="color-picker" value="${s.barGrad1}" oninput="updateStyle('barGrad1', this.value)">
+                        <input type="color" class="color-picker" value="${s.barGrad2}" oninput="updateStyle('barGrad2', this.value)">
+                    </div>
+                </div>
+                `;
+            }
+
+            // 4. 구분선 에디터
+            else if (node.type === 'divider') {
+                html += `
+                <div class="prop-section">
+                    <div class="prop-title">선 설정</div>
+                    <div class="prop-group">
+                        <label>선 종류</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn ${s.borderStyle === 'solid' ? 'active' : ''}" onclick="updateStyle('borderStyle', 'solid')">실선</button>
+                            <button class="toggle-btn ${s.borderStyle === 'dashed' ? 'active' : ''}" onclick="updateStyle('borderStyle', 'dashed')">대시선</button>
+                            <button class="toggle-btn ${s.borderStyle === 'dotted' ? 'active' : ''}" onclick="updateStyle('borderStyle', 'dotted')">점선</button>
+                        </div>
+                    </div>
+                    <div class="flex-row prop-group"><label style="margin:0; flex:1;">선 색상</label><input type="color" class="color-picker" value="${s.borderColor}" oninput="updateStyle('borderColor', this.value)"></div>
+                    <div class="prop-group"><label>선 굵기 <span id="val_borderWidth">${s.borderWidth}</span>px</label><input type="range" min="1" max="10" value="${s.borderWidth}" oninput="updateStyle('borderWidth', this.value)"></div>
+                    <div class="prop-group"><label>위아래 여백 <span id="val_margin">${s.margin}</span>px</label><input type="range" min="0" max="60" value="${s.margin}" oninput="updateStyle('margin', this.value)"></div>
+                </div>
+                `;
+            }
+
+            panel.innerHTML = html;
+        }
+
+        function copyCode(btn) {
+            const code = document.getElementById('codeBox').textContent;
+            if(!code) return alert('복사할 코드가 없습니다.');
+            navigator.clipboard.writeText(code).then(() => {
                 btn.textContent = '완료!';
-                setTimeout(() => { btn.textContent = origin; }, 1000);
-            }).catch(err => {
-                alert('복사에 실패했습니다.');
+                setTimeout(() => { btn.textContent = '코드 복사'; }, 1000);
             });
         }
 
-        // 초기 화면 세팅
         renderAll();
     </script>
 </body>
 </html>
+
