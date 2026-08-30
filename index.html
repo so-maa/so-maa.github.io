@@ -13,12 +13,10 @@
         .slot-btn.active { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
-        .header .title-area { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; } /* 버튼이 늘어나도 안 깨지도록 간격과 자동 줄바꿈 추가 */
+        .header .title-area { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
         .header .title-mark { color: #f7768e; margin-right: 5px; }
         
-        .copy-all-btn { background-color: transparent; color: #7aa2f7; border: 1px solid #7aa2f7; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-        
-        /* 💡 템플릿 붙이기 버튼 전용 스타일 (눈에 띄게 연한 초록색으로 설정) */
+        .action-btn { background-color: transparent; color: #7aa2f7; border: 1px solid #7aa2f7; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
         .template-paste-btn { background-color: rgba(158, 206, 106, 0.1); color: #9ece6a; border-color: #9ece6a; }
 
         .item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
@@ -40,21 +38,51 @@
         .copy-btn { background-color: #9ece6a; color: #1a1b26; }
         .move-btn { background-color: #24283b; border: 1px solid #565f89; }
 
+        /* 💡 새롭게 추가된 모달(팝업창) 스타일 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(26, 27, 38, 0.8); backdrop-filter: blur(3px);
+            z-index: 2000; display: flex; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background-color: #24283b; width: 90%; max-width: 450px;
+            border-radius: 12px; padding: 25px 20px; position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); box-sizing: border-box;
+        }
+        .modal-close-btn {
+            position: absolute; top: 15px; right: 15px; background: none; border: none;
+            color: #565f89; font-size: 20px; cursor: pointer; padding: 5px;
+        }
+        .modal-content h3 { margin-top: 0; color: #c0caf5; font-size: 16px; margin-bottom: 5px; }
+        .modal-content p { font-size: 12px; color: #565f89; margin-bottom: 15px; margin-top: 0; line-height: 1.4; }
+        .modal-textarea {
+            width: 100%; background-color: #1a1b26; border: 1px solid #414868;
+            border-radius: 8px; padding: 12px; color: #c0caf5; font-size: 14px;
+            resize: vertical; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; outline: none;
+        }
+        .modal-textarea:focus { border-color: #7aa2f7; }
+        .modal-confirm-btn {
+            width: 100%; background-color: #7aa2f7; color: #1a1b26;
+            border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: bold; cursor: pointer;
+        }
+
         @media (hover: hover) {
             .shortcut-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
             .copy-btn:hover { background-color: #73daca; }
             .delete-btn:hover { color: #f7768e; }
             .add-btn:hover { border-color: #7aa2f7; background-color: rgba(122, 162, 247, 0.1); }
-            .copy-all-btn:hover { background-color: #7aa2f7; color: #1a1b26; } 
+            .action-btn:hover { background-color: #7aa2f7; color: #1a1b26; } 
             .template-paste-btn:hover { background-color: #9ece6a; color: #1a1b26; }
             .slot-btn:hover:not(.active) { background-color: #414868; color: #c0caf5; }
+            .modal-close-btn:hover { color: #f7768e; }
+            .modal-confirm-btn:hover { background-color: #8db0f8; }
         }
         
         .shortcut-btn:active { background-color: #7aa2f7; color: #1a1b26; }
         .copy-btn:active { background-color: #73daca; }
         .delete-btn:active { color: #f7768e; }
         .add-btn:active { border-color: #7aa2f7; background-color: rgba(122, 162, 247, 0.1); }
-        .copy-all-btn:active { background-color: #7aa2f7; color: #1a1b26; } 
+        .action-btn:active { background-color: #7aa2f7; color: #1a1b26; } 
         .template-paste-btn:active { background-color: #9ece6a; color: #1a1b26; }
         .slot-btn:active:not(.active) { background-color: #414868; color: #c0caf5; }
     </style>
@@ -73,10 +101,11 @@
         <div class="header">
             <div class="title-area">
                 <div><span class="title-mark">*</span>항목</div>
-                <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllData(this)">전체 복사</button>
-                <button class="copy-all-btn" id="copyTemplateBtn" onclick="copyTemplateData(this)">템플릿 복사</button>
-                <!-- 💡 숨겨져 있다가 필요할 때만 나타나는 템플릿 붙이기 버튼 -->
-                <button class="copy-all-btn template-paste-btn" id="pasteTemplateBtn" onclick="pasteTemplateData(this)" style="display: none;">템플릿 붙이기</button>
+                <button class="action-btn" id="copyAllBtn" onclick="copyAllData(this)">전체 복사</button>
+                <!-- 💡 전체 복사와 템플릿 복사 사이에 '붙여넣기' 버튼 추가 -->
+                <button class="action-btn" onclick="openImportModal(this)">붙여넣기</button>
+                <button class="action-btn" id="copyTemplateBtn" onclick="copyTemplateData(this)">템플릿 복사</button>
+                <button class="action-btn template-paste-btn" id="pasteTemplateBtn" onclick="pasteTemplateData(this)" style="display: none;">템플릿 붙이기</button>
             </div>
             <div id="charCount" style="color: #565f89; font-size: 14px;">0 / 1,000</div>
         </div>
@@ -84,6 +113,17 @@
         <div id="itemList"></div>
 
         <button class="add-btn" onclick="addRow(this)">+ 항목 추가</button>
+    </div>
+
+    <!-- 💡 하단에 추가된 모달(팝업) 영역 -->
+    <div id="importModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeImportModal()">✕</button>
+            <h3>외부 텍스트 붙여넣기</h3>
+            <p>'항목이름: 항목설명' 형식의 텍스트를 붙여넣으세요.<br>기존 내용은 덮어씌워집니다.</p>
+            <textarea id="importTextarea" class="modal-textarea" rows="8" placeholder="예시)&#10;이름: 홍길동&#10;성격: 활발하고 밝음&#10;특징: 요리를 잘함"></textarea>
+            <button class="modal-confirm-btn" onclick="processImportText()">확인 (적용하기)</button>
+        </div>
     </div>
 
     <div class="shortcut-bar" id="shortcutBar">
@@ -110,14 +150,67 @@
         const copyTemplateBtn = document.getElementById('copyTemplateBtn');
         const pasteTemplateBtn = document.getElementById('pasteTemplateBtn');
         
+        // 모달 관련 요소
+        const importModal = document.getElementById('importModal');
+        const importTextarea = document.getElementById('importTextarea');
+
         let lastFocusedTextarea = null;
         let currentSlot = 1; 
 
         // ==========================================
-        // 💡 새롭게 추가된 기능: 템플릿 복사 & 붙이기
+        // 💡 새롭게 추가된 기능: 외부 텍스트 붙여넣기
         // ==========================================
-        
-        // 1. 현재 슬롯의 템플릿 구조를 복사해서 기억(클립보드 저장)하는 함수
+        function openImportModal(btn) {
+            if (btn) btn.blur();
+            importModal.style.display = 'flex'; // 창 띄우기
+            importTextarea.value = ''; // 이전 입력 기록 비우기
+            importTextarea.focus();
+        }
+
+        function closeImportModal() {
+            importModal.style.display = 'none'; // 창 닫기
+        }
+
+        function processImportText() {
+            const text = importTextarea.value;
+            if (!text.trim()) {
+                alert('붙여넣을 텍스트가 없습니다.');
+                return;
+            }
+
+            const lines = text.split('\n');
+            let newItems = [];
+            let currentItem = null;
+
+            lines.forEach(line => {
+                const colonIndex = line.indexOf(':');
+                
+                // 콜론(:)이 포함된 줄이면 새로운 항목으로 분리
+                if (colonIndex !== -1) {
+                    const nameStr = line.substring(0, colonIndex).trim();
+                    const valueStr = line.substring(colonIndex + 1).trim();
+                    currentItem = { name: nameStr, value: valueStr };
+                    newItems.push(currentItem);
+                } 
+                // 콜론이 없는 줄인데, 이전에 파싱된 항목이 있다면 그 항목의 설명 아래로(줄바꿈) 합치기
+                else if (currentItem && line.trim() !== '') {
+                    currentItem.value += '\n' + line.trim();
+                }
+            });
+
+            if (newItems.length > 0) {
+                // 파싱 성공! 화면 싹 비우고 새로 적용
+                itemList.innerHTML = '';
+                newItems.forEach(item => addRow(null, item.name, item.value));
+                
+                saveData(); // 저장소에 업데이트
+                closeImportModal(); // 창 닫기
+            } else {
+                alert('올바른 형식(항목이름: 항목설명)의 텍스트를 찾을 수 없습니다.');
+            }
+        }
+        // ==========================================
+
         function copyTemplateData(btn) {
             if (btn) btn.blur();
             
@@ -129,20 +222,15 @@
                 dataToCopy.push({ name: nameStr, value: valueStr });
             });
 
-            // 브라우저 저장소에 '가상 클립보드' 형태로 임시 저장
             localStorage.setItem('clipboardTemplateData', JSON.stringify(dataToCopy));
-            // 몇 번 슬롯에서 복사했는지 기록 (원본 슬롯에는 붙이기 버튼을 안 띄우기 위함)
             localStorage.setItem('clipboardSourceSlot', currentSlot.toString());
 
-            // 시각적 피드백
             copyTemplateBtn.textContent = '복사 완료!';
             setTimeout(() => { copyTemplateBtn.textContent = '템플릿 복사'; }, 1000);
 
-            // 상태 체크 업데이트 (현재 슬롯이 원본이므로 붙이기 버튼은 숨겨짐)
             checkClipboardState();
         }
 
-        // 2. 다른 슬롯에 복사해둔 템플릿을 붙여넣는 함수
         function pasteTemplateData(btn) {
             if (btn) btn.blur();
 
@@ -150,41 +238,29 @@
             if (savedClipboard) {
                 const dataArray = JSON.parse(savedClipboard);
                 
-                // 현재 슬롯의 화면을 싹 비우고
                 itemList.innerHTML = '';
-                
-                // 복사해둔 데이터로 줄을 새로 생성
                 if (dataArray.length > 0) {
                     dataArray.forEach(item => addRow(null, item.name, item.value));
                 } else {
                     addRow();
                 }
-
-                // 덮어쓴 내용을 현재 슬롯에 완전 저장
                 saveData();
-                
-                // 붙여넣기가 끝났으므로 클립보드 비우기 (버튼을 없애기 위해)
                 localStorage.removeItem('clipboardTemplateData');
                 localStorage.removeItem('clipboardSourceSlot');
-                
-                // 상태 체크 업데이트 (붙이기 버튼 사라짐)
                 checkClipboardState();
             }
         }
 
-        // 3. 상황에 따라 [템플릿 붙이기] 버튼을 띄울지 숨길지 결정하는 함수
         function checkClipboardState() {
             const hasData = localStorage.getItem('clipboardTemplateData');
             const sourceSlot = parseInt(localStorage.getItem('clipboardSourceSlot'));
 
-            // 복사된 데이터가 있고, 그 데이터를 복사한 원본 슬롯이 현재 슬롯이 아니라면!
             if (hasData && sourceSlot !== currentSlot) {
-                pasteTemplateBtn.style.display = 'inline-block'; // 붙이기 버튼 등장
+                pasteTemplateBtn.style.display = 'inline-block';
             } else {
-                pasteTemplateBtn.style.display = 'none'; // 그 외에는 숨김
+                pasteTemplateBtn.style.display = 'none';
             }
         }
-        // ==========================================
 
         function switchSlot(slotNumber) {
             if (currentSlot === slotNumber) return; 
@@ -198,8 +274,6 @@
             itemList.innerHTML = '';
 
             loadData(slotNumber);
-            
-            // 💡 슬롯을 이동할 때마다 붙이기 버튼을 띄워야 할지 체크합니다.
             checkClipboardState();
         }
 
@@ -252,7 +326,7 @@
                 const dataArray = JSON.parse(savedData);
                 if (dataArray.length > 0) {
                     dataArray.forEach(item => addRow(null, item.name, item.value));
-                    checkClipboardState(); // 화면 불러오고 버튼 상태 체크
+                    checkClipboardState();
                     return;
                 }
             }
