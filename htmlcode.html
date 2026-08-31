@@ -215,6 +215,7 @@
         let chatMemories = {}; 
         let currentContextKey = ''; 
         let currentContextValue = '';
+        let readOnlyTimeout = null; // 구조분석 창 연속 클릭 시 키보드 잠김 방지용
 
         const appWrapper = document.getElementById('appWrapper');
         const introOverlay = document.getElementById('introOverlay');
@@ -284,58 +285,46 @@
 
         // ==========================================
         // 3. 입력 감지 
+        // 💡 2단계 창 클릭 연동 로직 완전히 삭제! (간섭 없음)
         // ==========================================
         codeEditor.addEventListener('input', () => {
             const html = codeEditor.value;
             previewBox.innerHTML = html; analyzeCode(html); saveData();
         });
 
+        // 💡 [수정 1] 사용자가 코드 편집기를 직접 클릭(수동 편집)하면
+        // 1타 강사 팝업/FAB이 화면(키보드)에 잘리거나 밀리지 않도록 아예 닫아준다.
+        // (구조 분석 창에서 안전 선택을 위해 프로그램적으로 focus()하는 경우는
+        //  실제 click 이벤트가 발생하지 않으므로 영향을 주지 않는다.)
+        codeEditor.addEventListener('click', () => {
+            closeExplanation();
+        });
+
         // ==========================================
         // 4. 모바일 키보드 제어 및 부드러운 하이라이트
         // ==========================================
         function safeSelectRange(start, end) {
-            /*
-             * 수정 2:
-             * readonly 상태에서 focus하면 모바일에서 키보드가 활성화되지 않는
-             * 문제가 있으므로 readonly를 사용하지 않고 바로 편집 가능한 상태에서
-             * focus + selection을 수행합니다.
-             *
-             * 수정 3:
-             * 코드 위치로 이동할 때 페이지 전체가 움직이지 않도록 현재
-             * window 스크롤 위치를 저장하고 복원합니다.
-             * 실제 이동은 codeEditor 내부 scroll만 수행합니다.
-             */
-            const pageScrollX = window.scrollX;
-            const pageScrollY = window.scrollY;
+            // 💡 [수정 3] 위치 이동 시 화면(페이지) 전체가 스크롤되지 않도록
+            // 현재 스크롤 위치를 저장해두었다가 즉시 복원한다.
+            const scrollX = window.scrollX, scrollY = window.scrollY;
 
-            codeEditor.focus({ preventScroll: true });
+            // 💡 [수정 2] 연속으로 빠르게 클릭할 경우 이전 타이머가 겹치면서
+            // 코드 편집기가 readOnly 상태로 굳어 키보드가 안 뜨는 문제 방지.
+            if (readOnlyTimeout) clearTimeout(readOnlyTimeout);
+
+            codeEditor.readOnly = true; 
+            codeEditor.focus({ preventScroll: true }); 
             codeEditor.setSelectionRange(start, end);
+            readOnlyTimeout = setTimeout(() => { codeEditor.readOnly = false; readOnlyTimeout = null; }, 50);
 
+            // 해당 줄로 부드럽게 스크롤 (코드 편집기 내부에서만 스크롤)
             const textUpToStart = codeEditor.value.substring(0, start);
             const lineBreaks = (textUpToStart.match(/\n/g) || []).length;
-            const lineHeight = 19.5;
-            const targetScroll = Math.max(0, (lineBreaks * lineHeight) - 40);
+            const lineHeight = 19.5; 
+            codeEditor.scrollTo({ top: (lineBreaks * lineHeight) - 40, behavior: 'smooth' });
 
-            codeEditor.scrollTo({
-                top: targetScroll,
-                behavior: 'smooth'
-            });
-
-            /*
-             * focus로 인해 브라우저가 페이지 자체를 이동시키는 것을 방지.
-             * 코드 편집기의 내부 스크롤만 유지합니다.
-             */
-            requestAnimationFrame(() => {
-                window.scrollTo(pageScrollX, pageScrollY);
-            });
-
-            setTimeout(() => {
-                window.scrollTo(pageScrollX, pageScrollY);
-            }, 100);
-
-            setTimeout(() => {
-                window.scrollTo(pageScrollX, pageScrollY);
-            }, 350);
+            // 페이지 전체 스크롤 위치 복원
+            window.scrollTo(scrollX, scrollY);
         }
 
         // ==========================================
@@ -364,24 +353,6 @@
             explanationPopup.classList.remove('show');
             fabBtn.classList.remove('show');
         }
-
-        /*
-         * 수정 1:
-         * 코드 편집기를 클릭하거나 터치했을 때 1타 강사창/FAB가
-         * 코드 편집기와 간섭하지 않도록 즉시 비활성화합니다.
-         *
-         * 단, 구조 분석에서 선택하여 생성된 현재 설명 내용 자체는
-         * 삭제하지 않고 화면의 FAB/팝업만 닫습니다.
-         */
-        codeEditor.addEventListener('pointerdown', () => {
-            explanationPopup.classList.remove('show');
-            fabBtn.classList.remove('show');
-        });
-
-        codeEditor.addEventListener('focus', () => {
-            explanationPopup.classList.remove('show');
-            fabBtn.classList.remove('show');
-        });
 
         if (window.visualViewport) {
             const adjustViewport = () => {
@@ -537,6 +508,7 @@
             return { badge: '', text: `<${n}> 태그` };
         }
 
+        // 💡 3단계 클릭 시 속성의 100% 정확한 인덱스 위치(pStart, pEnd)를 계산하는 핵심 엔진!
         function parseStylesAndLocate(attrString, nodeStart, tagCode) {
             if (!attrString) return [];
             const styleMatch = attrString.match(/style\s*=\s*(["'])(.*?)\1/i);
@@ -583,6 +555,7 @@
                         html += `<div class="prop-list">`;
                         styles.forEach(prop => {
                             const safeValue = prop.value.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                            // 정확히 계산된 prop.start, prop.end 값 사용
                             html += `<div class="prop-item" onclick="highlightSpecificStyle(event, ${prop.start}, ${prop.end}, '${prop.key}', '${prop.koreanName}', '${safeValue}')">
                                 <span class="prop-name">${prop.koreanName}</span><span class="prop-value">${prop.value}</span>
                             </div>`;
@@ -598,33 +571,21 @@
         }
 
         function analyzeCode(html) {
-            if (!html.trim()) { structureBox.innerHTML = '<div class="empty-msg">코드를 입력하면 여기에 분석 결과가 나타납니다.</div>'; return; }
+            if (!html.trim()) { structureBox.innerHTML = '<div class="empty-msg">코드를 입력하면 분석 결과가 나타납니다.</div>'; return; }
             structureBox.innerHTML = renderTreeUI(buildTree(tokenizeHTML(html), html.length), html);
         }
 
         function highlightFullTag(event, start, end, tagName, tagKoreanName) {
             if(event) event.stopPropagation();
-
-            /*
-             * 구조 분석을 클릭했을 때 현재 페이지 위치를 기억합니다.
-             * safeSelectRange가 코드 편집기 내부만 이동시키도록 합니다.
-             */
             safeSelectRange(start, end);
-
             const explainKey = (tagName === 'div' || tagName === 'details' || tagName === 'span') ? tagName : '기본 태그';
             triggerFab(explainKey, tagKoreanName, '태그 전체');
         }
 
+        // 💡 3단계 -> 2단계 핀포인트 하이라이트 함수 (오차 없이 정확한 인덱스 전달 받음)
         function highlightSpecificStyle(event, pStart, pEnd, cssKey, cssKoreanName, value) {
-            event.stopPropagation();
-
-            /*
-             * 구조 분석의 CSS 속성을 클릭하면
-             * 해당 속성 위치로 코드 편집기 내부만 이동합니다.
-             * 페이지 전체 스크롤은 safeSelectRange에서 방지합니다.
-             */
+            event.stopPropagation(); 
             safeSelectRange(pStart, pEnd);
-
             triggerFab(cssKey, cssKoreanName, value);
         }
 
