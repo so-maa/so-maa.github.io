@@ -55,23 +55,16 @@
         ::-webkit-scrollbar-track { background: #1a1b26; }
         ::-webkit-scrollbar-thumb { background: #414868; border-radius: 4px; }
         
-        /* 💡 추가된 전구 버튼 스타일 */
-        .bulb-btn { position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; border-radius: 50%; background: #bb9af7; color: #1a1b26; font-size: 26px; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; z-index: 10000; border: none; transition: 0.2s; }
+        /* 💡 수정: transition 속성을 transform과 filter로 한정하여 JS 위치 갱신과 충돌 방지 */
+        .bulb-btn { position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; border-radius: 50%; background: #bb9af7; color: #1a1b26; font-size: 26px; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; z-index: 10000; border: none; transition: transform 0.2s, filter 0.2s; }
         .bulb-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
 
-        .explanation-popup { position: fixed; bottom: 25px; left: 25px; width: 330px; background: #1f2335; border: 2px solid #bb9af7; border-radius: 12px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 10001; display: flex; flex-direction: column; gap: 8px; transform: translateX(-150%); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* 💡 수정: transition 속성을 transform으로 한정하여 JS 위치 갱신과 충돌 방지 */
+        .explanation-popup { position: fixed; bottom: 25px; left: 25px; width: 330px; background: #1f2335; border: 2px solid #bb9af7; border-radius: 12px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 9999; display: flex; flex-direction: column; gap: 8px; transform: translateX(-150%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .explanation-popup.show { transform: translateX(0); }
         .popup-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #414868; padding-bottom: 6px; }
         .popup-title { color: #bb9af7; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-        
-        /* 💡 버튼 수정 사항 적용 (- 버튼, 크기, 초기화 버튼) */
-        .popup-reset-btn { font-size: 11px; font-weight: bold; border: 1px solid #414868; padding: 3px 6px; border-radius: 4px; background: transparent; color: #a9b1d6; cursor: pointer; transition: 0.2s; }
-        .popup-reset-btn:hover { color: #f7768e; border-color: #f7768e; }
-        .popup-min-btn { background: none; border: none; color: #a9b1d6; font-size: 24px; cursor: pointer; padding: 0; font-weight: bold; line-height: 1; margin-top: -4px; transition: 0.2s; }
-        .popup-min-btn:hover { color: #bb9af7; }
-        .popup-close-btn { background: none; border: none; color: #a9b1d6; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; transition: 0.2s; }
-        .popup-close-btn:hover { color: #f7768e; }
-        
+        .popup-close-btn { background: none; border: none; color: #a9b1d6; font-size: 16px; cursor: pointer; padding: 0; }
         .popup-prop-name { color: #1a1b26; font-weight: bold; font-size: 14px; background: #bb9af7; padding: 5px; border-radius: 6px; text-align: center; margin-bottom: 2px; }
         
         .chat-log { max-height: 250px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px; margin-top: 5px; }
@@ -84,7 +77,7 @@
         .chat-input { flex: 1; background: #1a1b26; border: 1px solid #414868; color: #c0caf5; padding: 8px 12px; border-radius: 20px; font-size: 12px; outline: none; }
         .chat-send-btn { background: #bb9af7; color: #1a1b26; border: none; border-radius: 20px; padding: 0 12px; font-weight: bold; cursor: pointer; font-size: 12px; }
 
-        .intro-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20000; display: flex; justify-content: center; align-items: center; background: rgba(26, 27, 38, 0.4); }
+        .intro-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; display: flex; justify-content: center; align-items: center; background: rgba(26, 27, 38, 0.4); }
         .intro-box { background: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 20px; width: 90%; max-width: 300px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 10px; text-align: center; }
         .intro-box h2 { margin: 0; font-size: 16px; color: #bb9af7; }
         .intro-box p { margin: 0; font-size: 12px; color: #a9b1d6; line-height: 1.5; }
@@ -95,8 +88,16 @@
         .api-input-container { display: none; flex-direction: column; gap: 8px; margin-top: 5px; }
         .api-input { padding: 8px; border-radius: 8px; border: 1px solid #414868; background: #1a1b26; color: #c0caf5; outline: none; font-size: 12px; }
 
+        .popup-reset-btn { font-size: 11px; font-weight: bold; border: 1px solid #414868; padding: 3px 6px; border-radius: 4px; background: transparent; color: #a9b1d6; cursor: pointer; transition: 0.2s; }
+        .popup-reset-btn:hover { color: #f7768e; border-color: #f7768e; }
+        .popup-min-btn { background: none; border: none; color: #a9b1d6; font-size: 24px; cursor: pointer; padding: 0; font-weight: bold; line-height: 1; margin-top: -4px; transition: 0.2s; }
+        .popup-min-btn:hover { color: #bb9af7; }
+        .popup-close-btn { background: none; border: none; color: #a9b1d6; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; transition: 0.2s; }
+        .popup-close-btn:hover { color: #f7768e; }
+
         @media (hover: hover) {
             .action-btn:hover, .slot-btn:hover:not(.active) { background: #414868; color: #c0caf5; }
+            .popup-close-btn:hover { color: #f7768e; }
             .intro-btn:hover { filter: brightness(1.1); }
             .ai-req-btn:hover { background: #bb9af7; color: #1a1b26; }
         }
@@ -165,12 +166,11 @@
         </div>
     </div>
 
-    <!-- 💡 플로팅 💡 버튼 -->
+    <!-- 플로팅 💡 버튼 -->
     <button id="bulbBtn" class="bulb-btn" onclick="maximizeExplanation()">💡</button>
 
     <div id="explanationPopup" class="explanation-popup">
         <div class="popup-header">
-            <!-- 💡 버튼 배열 및 구조 변경 -->
             <div style="display:flex; gap:8px; align-items:center;">
                 <span class="popup-title">✨ AI 코딩 상담소</span>
                 <button class="popup-reset-btn" onclick="resetCurrentChat()">🔄 초기화</button>
@@ -337,7 +337,6 @@
         
         function analyzeCode(html) { UI.tree.innerHTML = !html.trim() ? '<div class="empty-msg">결과가 나타납니다.</div>' : renderTree(parseHTML(html)); }
 
-        // 💡 팝업 띄우기 로직 (창 대신 💡 버튼 먼저 띄우기)
         function openPop(k, kn, v) { 
             currKey = k; currVal = v; 
             UI.propName.textContent = kn; 
@@ -346,7 +345,6 @@
             UI.bulb.style.display = 'flex';
         }
         
-        // 💡 버튼 기능들
         const maximizeExplanation = () => { UI.bulb.style.display = 'none'; UI.popup.classList.add('show'); };
         const minimizeExplanation = () => { UI.popup.classList.remove('show'); UI.bulb.style.display = 'flex'; };
         const closeExplanation = () => { UI.popup.classList.remove('show'); UI.bulb.style.display = 'none'; };
@@ -370,6 +368,18 @@
 
         function loadData(n) { UI.editor.value = store.get('htmlCodeSlot_'+n)||''; UI.editor.dispatchEvent(new Event('input')); }
         const copyCode = () => !UI.editor.value ? alert('내용이 없습니다.') : navigator.clipboard.writeText(UI.editor.value).then(()=>alert('복사 완료!'));
+
+        // 💡 키보드 활성화 시 팝업 및 버튼 위로 올리기 (모바일 대응)
+        if (window.visualViewport) {
+            const adjustKeyboard = () => {
+                const offset = Math.max(0, window.innerHeight - window.visualViewport.height);
+                const popupBase = window.innerWidth <= 768 ? 20 : 25;
+                UI.popup.style.bottom = (offset + popupBase) + 'px';
+                UI.bulb.style.bottom = (offset + 30) + 'px';
+            };
+            window.visualViewport.addEventListener('resize', adjustKeyboard);
+            window.visualViewport.addEventListener('scroll', adjustKeyboard);
+        }
     </script>
 </body>
 </html>
