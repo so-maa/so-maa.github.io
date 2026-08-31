@@ -19,7 +19,25 @@
         
         .box-base { background: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 15px; }
         
-        .preview-box { background: #fff radial-gradient(#e2e8f0 1px, transparent 0); background-size: 15px 15px; border-top: 2px dashed #565f89; border-bottom: 2px dashed #565f89; border-left: none; border-right: none; border-radius: 0; margin: 0 -20px; padding: 20px; min-height: 200px; overflow-x: hidden; color: #333; }
+        .preview-box {
+    background: #fff radial-gradient(#e2e8f0 1px, transparent 0);
+    background-size: 15px 15px;
+    border-top: 2px dashed #565f89;
+    border-bottom: 2px dashed #565f89;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    margin: 0 -20px;
+    padding: 20px;
+    
+    /* 👇 이 부분이 핵심입니다 */
+    height: 500px;        /* 칸의 세로 너비를 500px로 고정 */
+    overflow-y: auto;     /* 내용이 500px을 넘어가면 세로 스크롤 생성 */
+    overflow-x: hidden;
+    
+    color: #333;
+}
+
         
         .code-textarea { width: 100%; height: 250px; background: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 12px; padding: 15px; font-family: Consolas, monospace; font-size: 13px; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
         .code-textarea:focus { border-color: #7aa2f7; box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2); }
