@@ -21,10 +21,10 @@
 
         .section-title { font-size: 14px; font-weight: bold; color: #7aa2f7; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
         
-        /* 1단계 모바일 화면 꽉 차게 넓이 및 상하 테두리 조정 */
+        /* 1단계 모바일 화면 꽉 차게 */
         .preview-box { width: calc(100% + 30px); margin-left: -15px; box-sizing: border-box; background-color: #ffffff; background-image: radial-gradient(#e2e8f0 1px, transparent 0); background-size: 15px 15px; border-top: 2px dashed #565f89; border-bottom: 2px dashed #565f89; border-left: none; border-right: none; border-radius: 0; padding: 15px; min-height: 150px; overflow-x: hidden; color: #333; }
 
-        /* 2단계 모바일 화면 꽉 차게 넓이 및 상하 테두리 조정 */
+        /* 2단계 모바일 화면 꽉 차게 */
         .code-editor-container { width: calc(100% + 30px); margin-left: -15px; box-sizing: border-box; }
         .code-textarea { width: 100%; height: 250px; background-color: #16161e; color: #9ece6a; border-top: 1px solid #414868; border-bottom: 1px solid #414868; border-left: none; border-right: none; border-radius: 0; padding: 15px; font-family: Consolas, monospace; font-size: 13px; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
         .code-textarea:focus { border-top-color: #7aa2f7; border-bottom-color: #7aa2f7; background-color: #1a1b26; }
@@ -47,9 +47,6 @@
         .prop-item:hover { background-color: #364A82; color: #fff; border-color: #7aa2f7; }
         .prop-name { color: #9ece6a; font-weight: bold; width: 130px; flex-shrink: 0; }
         .prop-value { color: #c0caf5; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
-        
-        /* 2단계 연동 시 빛나는 효과 */
-        .highlight-match { border: 1px solid #f7768e !important; box-shadow: 0 0 8px rgba(247, 118, 142, 0.4); }
 
         .tree-children { margin-left: 15px; padding-left: 10px; border-left: 2px dashed #414868; margin-top: 4px; display: flex; flex-direction: column; }
         
@@ -71,11 +68,11 @@
         ::-webkit-scrollbar-thumb { background: #414868; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #7aa2f7; }
 
-        /* FAB 단축키 (키보드 대응) */
+        /* FAB 단축키 */
         .fab-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background-color: #bb9af7; color: #1a1b26; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); cursor: pointer; z-index: 10005; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: scale(0); }
         .fab-btn.show { transform: scale(1); }
 
-        /* 선생님 팝업창 */
+        /* 팝업창 */
         .explanation-popup { position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 150%); width: 90vw; max-width: 330px; max-height: calc(var(--vh, 100vh) - 40px); background-color: #1f2335; border: 2px solid #bb9af7; border-radius: 12px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 10006; display: flex; flex-direction: column; gap: 8px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .explanation-popup.show { transform: translate(-50%, 0); }
         
@@ -188,10 +185,8 @@
         </div>
     </div>
 
-    <!-- 💡 동그란 단축키 (FAB) -->
     <div id="fabBtn" class="fab-btn" onclick="openPopupFromFab()">💡</div>
 
-    <!-- 💡 선생님 대화창 -->
     <div id="explanationPopup" class="explanation-popup">
         <div class="popup-header">
             <div class="popup-title-group">
@@ -236,7 +231,7 @@
         const chatInput = document.getElementById('chatInput');
 
         // ==========================================
-        // 1. 초기화 및 API 설정
+        // 1. 초기화 및 API
         // ==========================================
         window.onload = () => { 
             loadData(1); 
@@ -288,44 +283,59 @@
         function getUsageCount() { return (JSON.parse(localStorage.getItem('geminiUsageData')) || {}).count || 0; }
 
         // ==========================================
-        // 3. 코드 입력 감지 및 키보드 정상화 로직
+        // 3. 입력 감지 
         // ==========================================
         codeEditor.addEventListener('input', () => {
             const html = codeEditor.value;
             previewBox.innerHTML = html; analyzeCode(html); saveData();
         });
 
-        // 💡 2단계 코드창을 누르면: 혹시 열려있는 팝업이나 단축키 닫기 & 키보드 즉시 호출 보장
-        codeEditor.addEventListener('click', () => {
-            if(codeEditor.readOnly) {
-                codeEditor.readOnly = false;
-                codeEditor.blur(); 
-                codeEditor.focus();
-            }
-            closeExplanation();
-        });
-
         // ==========================================
-        // 4. 구조 분석 클릭 시 오차없는 하이라이트 (전체 튕김 방지)
+        // 4. 모바일 키보드 제어 및 부드러운 하이라이트
         // ==========================================
         function safeSelectRange(start, end) {
-            // 1. 현재 화면(윈도우) 스크롤 위치를 기억해둡니다.
-            const currentScrollX = window.scrollX;
-            const currentScrollY = window.scrollY;
+            /*
+             * 수정 2:
+             * readonly 상태에서 focus하면 모바일에서 키보드가 활성화되지 않는
+             * 문제가 있으므로 readonly를 사용하지 않고 바로 편집 가능한 상태에서
+             * focus + selection을 수행합니다.
+             *
+             * 수정 3:
+             * 코드 위치로 이동할 때 페이지 전체가 움직이지 않도록 현재
+             * window 스크롤 위치를 저장하고 복원합니다.
+             * 실제 이동은 codeEditor 내부 scroll만 수행합니다.
+             */
+            const pageScrollX = window.scrollX;
+            const pageScrollY = window.scrollY;
 
-            // 2. 키보드가 뜨지 않도록 잠깐 readOnly를 걸고 블록 지정
-            codeEditor.readOnly = true; 
-            codeEditor.focus({ preventScroll: true }); 
+            codeEditor.focus({ preventScroll: true });
             codeEditor.setSelectionRange(start, end);
 
-            // 3. 브라우저가 멋대로 화면을 위아래로 움직였다면, 즉시 원래 위치로 복구! (화면 튕김 완벽 차단)
-            window.scrollTo(currentScrollX, currentScrollY);
-
-            // 4. 이제 코드 편집창 내부(텍스트)만 부드럽게 스크롤해줍니다.
             const textUpToStart = codeEditor.value.substring(0, start);
             const lineBreaks = (textUpToStart.match(/\n/g) || []).length;
-            const lineHeight = 19.5; 
-            codeEditor.scrollTo({ top: Math.max(0, (lineBreaks * lineHeight) - 40), behavior: 'smooth' });
+            const lineHeight = 19.5;
+            const targetScroll = Math.max(0, (lineBreaks * lineHeight) - 40);
+
+            codeEditor.scrollTo({
+                top: targetScroll,
+                behavior: 'smooth'
+            });
+
+            /*
+             * focus로 인해 브라우저가 페이지 자체를 이동시키는 것을 방지.
+             * 코드 편집기의 내부 스크롤만 유지합니다.
+             */
+            requestAnimationFrame(() => {
+                window.scrollTo(pageScrollX, pageScrollY);
+            });
+
+            setTimeout(() => {
+                window.scrollTo(pageScrollX, pageScrollY);
+            }, 100);
+
+            setTimeout(() => {
+                window.scrollTo(pageScrollX, pageScrollY);
+            }, 350);
         }
 
         // ==========================================
@@ -355,19 +365,35 @@
             fabBtn.classList.remove('show');
         }
 
-        // 💡 키보드 활성화 시 단축키 및 팝업창 위로 밀어 올리기
+        /*
+         * 수정 1:
+         * 코드 편집기를 클릭하거나 터치했을 때 1타 강사창/FAB가
+         * 코드 편집기와 간섭하지 않도록 즉시 비활성화합니다.
+         *
+         * 단, 구조 분석에서 선택하여 생성된 현재 설명 내용 자체는
+         * 삭제하지 않고 화면의 FAB/팝업만 닫습니다.
+         */
+        codeEditor.addEventListener('pointerdown', () => {
+            explanationPopup.classList.remove('show');
+            fabBtn.classList.remove('show');
+        });
+
+        codeEditor.addEventListener('focus', () => {
+            explanationPopup.classList.remove('show');
+            fabBtn.classList.remove('show');
+        });
+
         if (window.visualViewport) {
             const adjustViewport = () => {
                 const vh = window.visualViewport.height;
-                const offset = window.innerHeight - vh;
+                const offset = Math.max(0, window.innerHeight - vh);
                 document.documentElement.style.setProperty('--vh', `${vh}px`);
-                
-                const bottomPos = offset > 10 ? offset + 20 : 20;
-                fabBtn.style.bottom = `${bottomPos}px`;
-                explanationPopup.style.bottom = `${bottomPos}px`;
+                fabBtn.style.bottom = `${offset + 20}px`;
+                explanationPopup.style.bottom = `${offset + 20}px`;
             };
             window.visualViewport.addEventListener('resize', adjustViewport);
             window.visualViewport.addEventListener('scroll', adjustViewport);
+            adjustViewport();
         }
 
         // ==========================================
@@ -465,7 +491,7 @@
         }
 
         // ==========================================
-        // 7. 한글 해독기 사전
+        // 7. 한글 해독기 및 정밀 위치 계산 파서
         // ==========================================
         const styleDictionary = { 'background': '🎨 배경', 'background-color': '🎨 배경색', 'color': '🖍️ 글자 색상', 'border': '🔲 테두리', 'border-radius': '↪️ 테두리 둥글기', 'padding': '↔️ 안쪽 여백 (완충재)', 'margin': '↔️ 바깥 여백 (거리두기)', 'width': '📏 가로 너비', 'max-width': '📏 최대 가로 너비', 'height': '↕️ 세로 높이', 'font-size': '🅰️ 글자 크기', 'font-weight': '𝐁 글자 굵기', 'text-align': '📑 글자 정렬', 'line-height': '↕️ 줄 간격', 'word-break': '✂️ 단어 줄바꿈 방식', 'text-wrap': '🎀 문단 맞추기', 'display': '📐 배치 방식 (Flex 등)', 'justify-content': '가로 정렬 방식', 'align-items': '세로 정렬 방식', 'gap': '요소 간격', 'overflow': '넘칠 때 처리', 'position': '📍 요소 위치 기준', 'transform': '🔄 모양 변형', 'z-index': '겹치는 순서', 'box-sizing': '박스 계산법', 'opacity': '👻 투명도' };
         const explanationFallback = { 'margin': '바깥으로 남들이 다가오지 못하게 밀어내는 <b>"거리두기"</b> 구역입니다.', 'padding': '안쪽에 부서지지 않게 <b>"뽁뽁이(완충재)"</b>를 채워 넣는 것과 같습니다.', 'border-radius': '모서리를 <b>"사포로 둥글게 갈아내는"</b> 효과입니다.', 'display': '<b>flex</b>는 레고 블록처럼 유연하게 정렬해주는 도구입니다.' };
@@ -511,39 +537,39 @@
             return { badge: '', text: `<${n}> 태그` };
         }
 
+        function parseStylesAndLocate(attrString, nodeStart, tagCode) {
+            if (!attrString) return [];
+            const styleMatch = attrString.match(/style\s*=\s*(["'])(.*?)\1/i);
+            if (!styleMatch) return [];
+            
+            let styleStr = styleMatch[2].replace(/\/\*[\s\S]*?\*\//g, '');
+            const properties = [];
+            
+            styleStr.split(';').filter(r => r.trim() !== '').forEach(rule => {
+                const parts = rule.split(':');
+                if (parts.length >= 2) {
+                    const key = parts[0].trim().toLowerCase();
+                    const value = parts.slice(1).join(':').trim(); 
+                    
+                    const regex = new RegExp(`(?<![\\w-])${key.replace(/-/g, '\\-')}\\s*:\\s*[^;"]+`, 'i');
+                    const match = tagCode.match(regex);
+                    let pStart = nodeStart; let pEnd = nodeStart;
+                    if(match) {
+                        pStart = nodeStart + match.index;
+                        pEnd = pStart + match[0].length;
+                    }
+                    properties.push({ key, value, koreanName: styleDictionary[key] || key, start: pStart, end: pEnd });
+                }
+            });
+            return properties;
+        }
+
         function renderTreeUI(nodes, htmlCode) {
             let html = '';
             for (let node of nodes) {
                 const info = translateTag(node.name, node.text);
-                
-                // 💡 속성 파싱 및 정밀 위치 계산
-                const attrs = node.attrs || '';
-                const styleMatch = attrs.match(/style\s*=\s*(["'])(.*?)\1/i);
-                const styles = [];
-                if (styleMatch) {
-                    const tagCode = htmlCode.substring(node.start, node.openEnd);
-                    let styleStr = styleMatch[2].replace(/\/\*[\s\S]*?\*\//g, '');
-                    
-                    styleStr.split(';').filter(r => r.trim() !== '').forEach(rule => {
-                        const parts = rule.split(':');
-                        if (parts.length >= 2) {
-                            const key = parts[0].trim().toLowerCase();
-                            const value = parts.slice(1).join(':').trim(); 
-                            
-                            // 💡 에러 0%: 이전 문자가 영문/숫자/하이픈이 아닐 때만 정확히 매칭!
-                            const regex = new RegExp(`(^|[^\\w-])(${key.replace(/-/g, '\\-')}\\s*:\\s*[^;"]+)`, 'i');
-                            const match = tagCode.match(regex);
-                            
-                            let pStart = node.start; let pEnd = node.start;
-                            if(match) {
-                                // 정확히 속성 이름부터 값 끝까지만 계산
-                                pStart = node.start + match.index + match[1].length;
-                                pEnd = pStart + match[2].length;
-                            }
-                            styles.push({ key, value, koreanName: styleDictionary[key] || key, start: pStart, end: pEnd });
-                        }
-                    });
-                }
+                const tagCode = htmlCode.substring(node.start, node.openEnd);
+                const styles = parseStylesAndLocate(node.attrs, node.start, tagCode);
                 
                 html += `<div class="tree-node">`;
                 if (node.name === '#text' || node.name === 'br') {
@@ -557,7 +583,6 @@
                         html += `<div class="prop-list">`;
                         styles.forEach(prop => {
                             const safeValue = prop.value.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                            // 💡 완벽하게 찾은 인덱스(prop.start, prop.end)를 전달!
                             html += `<div class="prop-item" onclick="highlightSpecificStyle(event, ${prop.start}, ${prop.end}, '${prop.key}', '${prop.koreanName}', '${safeValue}')">
                                 <span class="prop-name">${prop.koreanName}</span><span class="prop-value">${prop.value}</span>
                             </div>`;
@@ -573,21 +598,33 @@
         }
 
         function analyzeCode(html) {
-            if (!html.trim()) { structureBox.innerHTML = '<div class="empty-msg">코드를 입력하면 분석 결과가 나타납니다.</div>'; return; }
+            if (!html.trim()) { structureBox.innerHTML = '<div class="empty-msg">코드를 입력하면 여기에 분석 결과가 나타납니다.</div>'; return; }
             structureBox.innerHTML = renderTreeUI(buildTree(tokenizeHTML(html), html.length), html);
         }
 
         function highlightFullTag(event, start, end, tagName, tagKoreanName) {
             if(event) event.stopPropagation();
+
+            /*
+             * 구조 분석을 클릭했을 때 현재 페이지 위치를 기억합니다.
+             * safeSelectRange가 코드 편집기 내부만 이동시키도록 합니다.
+             */
             safeSelectRange(start, end);
+
             const explainKey = (tagName === 'div' || tagName === 'details' || tagName === 'span') ? tagName : '기본 태그';
             triggerFab(explainKey, tagKoreanName, '태그 전체');
         }
 
-        // 오차 없는 핀포인트 하이라이트!
         function highlightSpecificStyle(event, pStart, pEnd, cssKey, cssKoreanName, value) {
-            event.stopPropagation(); 
-            safeSelectRange(pStart, pEnd); // 미리 계산된 정확한 위치 적용
+            event.stopPropagation();
+
+            /*
+             * 구조 분석의 CSS 속성을 클릭하면
+             * 해당 속성 위치로 코드 편집기 내부만 이동합니다.
+             * 페이지 전체 스크롤은 safeSelectRange에서 방지합니다.
+             */
+            safeSelectRange(pStart, pEnd);
+
             triggerFab(cssKey, cssKoreanName, value);
         }
 
