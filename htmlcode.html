@@ -55,16 +55,24 @@
         ::-webkit-scrollbar-track { background: #1a1b26; }
         ::-webkit-scrollbar-thumb { background: #414868; border-radius: 4px; }
         
-        .bulb-btn { position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; border-radius: 50%; background: #bb9af7; color: #1a1b26; font-size: 26px; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; z-index: 10000; border: none; transition: transform 0.2s, filter 0.2s; }
+        .bulb-btn { position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; border-radius: 50%; background: #bb9af7; color: #1a1b26; font-size: 26px; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; z-index: 10000; border: none; transition: transform 0.2s, filter 0.2s, bottom 0.15s ease-out; }
         .bulb-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
 
-        /* 💡 수정 1. 완벽한 투명망토 부여 (opacity, visibility, pointer-events) */
-        .explanation-popup { position: fixed; bottom: 25px; left: 25px; width: 330px; background: #1f2335; border: 2px solid #bb9af7; border-radius: 12px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 9999; display: flex; flex-direction: column; gap: 8px; transform: translateX(-150%); opacity: 0; visibility: hidden; pointer-events: none; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s, visibility 0.4s; }
+        /* 💡 수정: opacity, visibility를 추가하여 숨어있을 때 확실하게 투명화 및 터치 방지 */
+        .explanation-popup { position: fixed; bottom: 25px; left: 25px; width: 330px; background: #1f2335; border: 2px solid #bb9af7; border-radius: 12px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 9999; display: flex; flex-direction: column; gap: 8px; transform: translateX(-150%); opacity: 0; visibility: hidden; pointer-events: none; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s, visibility 0.4s, bottom 0.15s ease-out; }
+        /* 💡 수정: show 클래스가 붙었을 때만 확실하게 보이고 터치되도록 활성화 */
         .explanation-popup.show { transform: translateX(0); opacity: 1; visibility: visible; pointer-events: auto; }
         
         .popup-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #414868; padding-bottom: 6px; }
         .popup-title { color: #bb9af7; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-        .popup-close-btn { background: none; border: none; color: #a9b1d6; font-size: 16px; cursor: pointer; padding: 0; }
+        
+        .popup-reset-btn { font-size: 11px; font-weight: bold; border: 1px solid #414868; padding: 3px 6px; border-radius: 4px; background: transparent; color: #a9b1d6; cursor: pointer; transition: 0.2s; }
+        .popup-reset-btn:hover { color: #f7768e; border-color: #f7768e; }
+        .popup-min-btn { background: none; border: none; color: #a9b1d6; font-size: 24px; cursor: pointer; padding: 0; font-weight: bold; line-height: 1; margin-top: -4px; transition: 0.2s; }
+        .popup-min-btn:hover { color: #bb9af7; }
+        .popup-close-btn { background: none; border: none; color: #a9b1d6; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; transition: 0.2s; }
+        .popup-close-btn:hover { color: #f7768e; }
+        
         .popup-prop-name { color: #1a1b26; font-weight: bold; font-size: 14px; background: #bb9af7; padding: 5px; border-radius: 6px; text-align: center; margin-bottom: 2px; }
         
         .chat-log { max-height: 250px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px; margin-top: 5px; }
@@ -77,7 +85,7 @@
         .chat-input { flex: 1; background: #1a1b26; border: 1px solid #414868; color: #c0caf5; padding: 8px 12px; border-radius: 20px; font-size: 12px; outline: none; }
         .chat-send-btn { background: #bb9af7; color: #1a1b26; border: none; border-radius: 20px; padding: 0 12px; font-weight: bold; cursor: pointer; font-size: 12px; }
 
-        .intro-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; display: flex; justify-content: center; align-items: center; background: rgba(26, 27, 38, 0.4); }
+        .intro-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20000; display: flex; justify-content: center; align-items: center; background: rgba(26, 27, 38, 0.4); }
         .intro-box { background: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 20px; width: 90%; max-width: 300px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 10px; text-align: center; }
         .intro-box h2 { margin: 0; font-size: 16px; color: #bb9af7; }
         .intro-box p { margin: 0; font-size: 12px; color: #a9b1d6; line-height: 1.5; }
@@ -361,15 +369,24 @@
         function loadData(n) { UI.editor.value = store.get('htmlCodeSlot_'+n)||''; UI.editor.dispatchEvent(new Event('input')); }
         const copyCode = () => !UI.editor.value ? alert('내용이 없습니다.') : navigator.clipboard.writeText(UI.editor.value).then(()=>alert('복사 완료!'));
 
-        // 💡 수정 2. 스크롤/리사이즈 지터링 완벽 해결 로직 (offsetTop 수식 적용)
+        // 💡 수정: rAF로 프레임당 1회만 갱신 + resize/scroll 모두 감지 + 이벤트가 멈춘 뒤 최종값 재확정(settle)으로
+        // 스크롤을 올릴 때/내릴 때 모두 부드럽게, 그리고 위치가 안 내려오는 현상까지 함께 해결.
         if (window.visualViewport) {
-            const adjustKeyboard = () => {
-                let offset = window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop);
-                if (offset < 0) offset = 0;
-                
+            let rafId = null, settleTimer = null;
+            const applyKeyboardPosition = () => {
+                const offset = Math.max(0, window.innerHeight - window.visualViewport.height);
+                const finalOffset = offset > 100 ? offset : 0; // 키보드로 판단될 만한 변화일 때만 적용
+
                 const popupBase = window.innerWidth <= 768 ? 20 : 25;
-                UI.popup.style.bottom = (offset + popupBase) + 'px';
-                UI.bulb.style.bottom = (offset + 30) + 'px';
+                UI.popup.style.bottom = (finalOffset + popupBase) + 'px';
+                UI.bulb.style.bottom = (finalOffset + 30) + 'px';
+            };
+            const adjustKeyboard = () => {
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(applyKeyboardPosition);
+
+                clearTimeout(settleTimer);
+                settleTimer = setTimeout(applyKeyboardPosition, 150);
             };
             window.visualViewport.addEventListener('resize', adjustKeyboard);
             window.visualViewport.addEventListener('scroll', adjustKeyboard);
