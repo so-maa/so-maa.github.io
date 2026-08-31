@@ -20,16 +20,23 @@
         .code-textarea:focus { border-color: #7aa2f7; box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2); }
         .code-textarea::selection { background-color: #364A82; color: #ffffff; }
 
-        /* 3. 하단: 한글 코드 해독기 (구조 분석) 영역 */
+        /* 3. 하단: 한글 코드 해독기 영역 */
         .structure-box { background-color: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 15px; min-height: 300px; max-height: 500px; overflow-y: auto; }
         
         /* 트리(Tree) 구조 스타일 */
         .tree-node { margin: 4px 0; font-size: 13px; line-height: 1.4; }
-        .tree-item { display: inline-block; padding: 6px 10px; background-color: #1f2335; border: 1px solid #414868; border-radius: 6px; cursor: pointer; transition: all 0.2s; color: #c0caf5; user-select: none; word-break: break-all; }
-        .tree-item:hover { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
+        .tree-summary { display: inline-block; padding: 6px 10px; background-color: #1f2335; border: 1px solid #414868; border-radius: 6px; cursor: pointer; transition: all 0.2s; color: #c0caf5; user-select: none; word-break: break-all; font-weight: bold; }
+        .tree-summary:hover { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
+        
+        /* 💡 추가된 속성 세부 리스트 (한글 번역 목록) */
+        .prop-list { margin-top: 5px; margin-bottom: 10px; padding-left: 15px; display: flex; flex-direction: column; gap: 4px; }
+        .prop-item { display: flex; align-items: center; padding: 4px 8px; background-color: #1a1b26; border: 1px dashed #414868; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; color: #a9b1d6; }
+        .prop-item:hover { background-color: #364A82; color: #fff; border-color: #7aa2f7; }
+        .prop-name { color: #9ece6a; font-weight: bold; width: 130px; flex-shrink: 0; }
+        .prop-value { color: #c0caf5; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
         
         /* 자식 요소 들여쓰기 */
-        .tree-children { margin-left: 20px; padding-left: 10px; border-left: 2px dashed #414868; margin-top: 4px; display: flex; flex-direction: column; }
+        .tree-children { margin-left: 15px; padding-left: 10px; border-left: 2px dashed #414868; margin-top: 4px; display: flex; flex-direction: column; }
         
         /* 태그별 색상 뱃지 */
         .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-right: 6px; background-color: #414868; color: #a9b1d6; }
@@ -41,7 +48,11 @@
         .action-btn { background-color: #414868; color: #c0caf5; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .action-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
 
-        /* 스크롤바 커스텀 */
+        /* <details> 태그 화살표 커스텀 */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] > summary { background-color: #364A82; border-color: #7aa2f7; color: #fff; }
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1a1b26; }
         ::-webkit-scrollbar-thumb { background: #414868; border-radius: 4px; }
@@ -51,7 +62,7 @@
 <body>
 
     <div class="app-container">
-        <div class="header-title">🔍 상태창 코드 해독기 (Anatomy & Editor)</div>
+        <div class="header-title">🔍 상태창 초정밀 해독기</div>
 
         <!-- 1. 미리보기 영역 -->
         <div>
@@ -62,17 +73,17 @@
         <!-- 2. 코드 편집기 영역 -->
         <div>
             <div class="section-title">
-                <span>💻 2단계: HTML 코드 편집기 (이곳에 코드를 붙여넣으세요)</span>
+                <span>💻 2단계: HTML 코드 편집기</span>
                 <button class="action-btn" onclick="copyCode()">코드 복사</button>
             </div>
             <div class="code-editor-container">
-                <textarea id="codeEditor" class="code-textarea" placeholder="여기에 예시 코드를 붙여넣거나 직접 작성해 보세요!"></textarea>
+                <textarea id="codeEditor" class="code-textarea" placeholder="여기에 상태창 코드를 붙여넣으세요!"></textarea>
             </div>
         </div>
 
         <!-- 3. 한글 코드 해독기 영역 -->
         <div>
-            <div class="section-title">📖 3단계: 구조 해독기 (클릭하면 위의 코드 위치를 찾아줍니다)</div>
+            <div class="section-title">📖 3단계: 구조 분석 (항목을 누르면 세부 설정이 열리고, 설정을 누르면 코드를 짚어줍니다)</div>
             <div id="structureBox" class="structure-box">
                 <div class="empty-msg">코드를 입력하면 여기에 분석 결과가 나타납니다.</div>
             </div>
@@ -84,16 +95,51 @@
         const codeEditor = document.getElementById('codeEditor');
         const structureBox = document.getElementById('structureBox');
 
-        // 입력창에 코드를 칠 때마다 즉시 실행
+        // 💡 영어 CSS 속성을 친절한 한글로 번역해주는 사전
+        const styleDictionary = {
+            'background': '🎨 배경 (색상/그라데이션)',
+            'background-color': '🎨 배경색',
+            'color': '🖍️ 글자색',
+            'border': '🔲 테두리 선',
+            'border-top': '윗면 테두리',
+            'border-bottom': '아랫면 테두리',
+            'border-left': '좌측 테두리',
+            'border-right': '우측 테두리',
+            'border-radius': '↪️ 테두리 둥글기 (라운드)',
+            'padding': '↔️ 내부 여백 (안쪽)',
+            'padding-top': '위쪽 내부 여백',
+            'padding-bottom': '아래쪽 내부 여백',
+            'padding-left': '왼쪽 내부 여백',
+            'padding-right': '오른쪽 내부 여백',
+            'margin': '↔️ 외부 여백 (바깥 간격)',
+            'margin-top': '위쪽 외부 여백',
+            'margin-bottom': '아래쪽 외부 여백',
+            'width': '📏 가로 너비',
+            'max-width': '📏 최대 가로 너비',
+            'height': '↕️ 세로 높이',
+            'font-size': '🅰️ 글자 크기',
+            'font-weight': '𝐁 글자 굵기',
+            'font-family': '🔤 폰트(글꼴)',
+            'text-align': '📑 글자 정렬',
+            'line-height': '줄 간격',
+            'box-shadow': '👤 그림자 효과',
+            'opacity': '👻 투명도 (0~1)',
+            'display': '📐 배치 방식 (Flex 등)',
+            'justify-content': '가로 정렬 방식',
+            'align-items': '세로 정렬 방식',
+            'gap': '요소 사이 간격',
+            'overflow': '넘침 처리 방식',
+            'position': '위치 지정 기준',
+            'transform': '도형 변형 (이동/회전)'
+        };
+
         codeEditor.addEventListener('input', () => {
             const html = codeEditor.value;
-            // 미리보기 업데이트
             previewBox.innerHTML = html;
-            // 코드 해독기 실행
             analyzeCode(html);
         });
 
-        // 💡 핵심 1: HTML 코드를 쪼개서 시작/끝 위치(Index)를 기억하는 토크나이저
+        // HTML 태그 분리 토크나이저
         function tokenizeHTML(html) {
             const regex = /<(\/?)([a-zA-Z0-9\-]+)([^>]*?)>|([^<]+)/g;
             let tokens = [];
@@ -106,130 +152,141 @@
                 const attributes = match[3] || '';
                 const textContent = match[4] || '';
                 
-                // 순수 공백 텍스트는 건너뜀
                 if (!isTag && textContent.trim() === '') continue;
 
                 tokens.push({
-                    isTag: isTag,
-                    isClose: isClose,
-                    name: tagName,
-                    attrs: attributes,
-                    text: match[0],
-                    rawContent: textContent.trim(),
-                    start: match.index,
-                    end: regex.lastIndex
+                    isTag: isTag, isClose: isClose, name: tagName, attrs: attributes,
+                    text: match[0], rawContent: textContent.trim(),
+                    start: match.index, end: regex.lastIndex
                 });
             }
             return tokens;
         }
 
-        // 💡 핵심 2: 쪼갠 토큰들을 부모-자식 트리(Tree) 구조로 조립
+        // 트리(Tree) 조립
         function buildTree(tokens, htmlLength) {
             let root = { name: 'root', children: [], start: 0, end: htmlLength };
             let stack = [root];
-            
-            // 닫는 태그가 없는 단일 태그들
-            const voidElements = ['br', 'hr', 'img', 'input', 'meta', 'link'];
+            const voidElements = ['br', 'hr', 'img', 'input'];
 
             for (let t of tokens) {
                 let parent = stack[stack.length - 1];
                 
                 if (t.isTag && !t.isClose) {
-                    let node = { 
-                        name: t.name, 
-                        start: t.start, 
-                        end: t.end, 
-                        children: [], 
-                        attrs: t.attrs 
-                    };
+                    let node = { name: t.name, start: t.start, end: t.end, children: [], attrs: t.attrs };
                     parent.children.push(node);
-                    
-                    if (!voidElements.includes(t.name)) {
-                        stack.push(node); // 자식을 가질 수 있으므로 스택에 추가
-                    }
+                    if (!voidElements.includes(t.name)) stack.push(node);
                 } 
                 else if (t.isTag && t.isClose) {
-                    // 짝이 맞는 여는 태그를 찾아 스택에서 뺌
                     for (let i = stack.length - 1; i >= 1; i--) {
                         if (stack[i].name === t.name) {
-                            stack[i].end = t.end; // 닫는 태그의 끝 위치 기록
+                            stack[i].end = t.end; 
                             stack.length = i; 
                             break;
                         }
                     }
                 } 
                 else if (!t.isTag) {
-                    // 단순 텍스트 노드
-                    parent.children.push({ 
-                        name: '#text', 
-                        text: t.rawContent, 
-                        start: t.start, 
-                        end: t.end 
-                    });
+                    parent.children.push({ name: '#text', text: t.rawContent, start: t.start, end: t.end });
                 }
             }
             return root.children;
         }
 
-        // 💡 핵심 3: 영어 태그 이름을 친절한 한글과 뱃지로 번역
+        // 태그 한글 번역
         function translateTag(node) {
             const n = node.name;
-            if (n === 'div') return { badge: 'box', text: '📦 구역 상자' };
-            if (n === 'span') return { badge: 'text', text: '🏷️ 텍스트 꾸밈' };
-            if (n === 'details') return { badge: 'special', text: '📂 접기/펼치기 틀' };
+            if (n === 'div') return { badge: 'box', text: '📦 구역 (도형/상자)' };
+            if (n === 'span') return { badge: 'text', text: '🏷️ 짧은 텍스트' };
+            if (n === 'details') return { badge: 'special', text: '📂 접기/펼치기 전체 틀' };
             if (n === 'summary') return { badge: 'special', text: '▶ 펼치기 제목' };
             if (n === 'br') return { badge: 'text', text: '↵ 줄바꿈' };
             if (n === 'hr') return { badge: 'box', text: '➖ 가로선' };
             if (n === 'strong' || n === 'b') return { badge: 'text', text: '𝗕 굵은 글씨' };
-            if (n === 'img') return { badge: 'special', text: '🖼️ 이미지' };
             if (n === '#text') {
-                // 텍스트가 너무 길면 말줄임표 처리
-                const previewText = node.text.length > 20 ? node.text.substring(0, 20) + '...' : node.text;
-                return { badge: '', text: `📝 "${previewText}"` };
+                const previewText = node.text.length > 15 ? node.text.substring(0, 15) + '...' : node.text;
+                return { badge: '', text: `📝 텍스트 내용: "${previewText}"` };
             }
-            return { badge: '', text: `<${n}> 태그` }; // 기타 태그
+            return { badge: '', text: `<${n}> 태그` };
         }
 
-        // 스타일 속성에서 중요한 힌트(배경색, 글자색 등)를 추출하여 요약
-        function extractHints(attrs) {
-            if (!attrs) return '';
-            let hints = [];
+        // 💡 핵심: style 속성 문자열을 분석하여 개별 CSS 항목으로 쪼개는 함수
+        function parseStyles(attrString) {
+            if (!attrString) return [];
             
-            // 정규식으로 색상 코드나 특정 속성 뽑아내기
-            const bgMatch = attrs.match(/background(-color)?:\s*([^;"]+)/i);
-            if (bgMatch) hints.push(`배경: ${bgMatch[2].trim()}`);
+            // style="..." 또는 style='...' 형태 추출
+            const styleMatch = attrString.match(/style\s*=\s*(["'])(.*?)\1/i);
+            if (!styleMatch) return [];
             
-            const colorMatch = attrs.match(/(?<!-|\w)color:\s*([^;"]+)/i);
-            if (colorMatch) hints.push(`글자색: ${colorMatch[1].trim()}`);
-
-            return hints.length > 0 ? ` <span style="color:#565f89; font-size:11px;">(${hints.join(' / ')})</span>` : '';
+            const styleContent = styleMatch[2];
+            const properties = [];
+            
+            // 세미콜론(;) 단위로 분리 (빈 문자열 제거)
+            const rules = styleContent.split(';').filter(rule => rule.trim() !== '');
+            
+            rules.forEach(rule => {
+                const parts = rule.split(':');
+                if (parts.length >= 2) {
+                    const key = parts[0].trim().toLowerCase();
+                    const value = parts.slice(1).join(':').trim(); // 속성값에 콜론이 있을 수 있음(url 등)
+                    
+                    properties.push({
+                        key: key,
+                        value: value,
+                        koreanName: styleDictionary[key] || key // 사전에 없으면 원래 영어 사용
+                    });
+                }
+            });
+            return properties;
         }
 
-        // 트리를 돌면서 HTML UI로 렌더링
+        // 트리 렌더링
         function renderTreeUI(nodes) {
             let html = '';
             for (let node of nodes) {
                 const info = translateTag(node);
-                const hints = extractHints(node.attrs);
+                const styles = parseStyles(node.attrs);
                 
                 html += `<div class="tree-node">`;
                 
-                // 클릭 시 해당 코드 범위를 하이라이트(드래그)하도록 함수 연결
-                html += `<div class="tree-item" onclick="highlightCode(${node.start}, ${node.end})">`;
-                if (info.badge) html += `<span class="badge ${info.badge}">${info.badge === 'box' ? 'BOX' : info.badge === 'text' ? 'TXT' : 'SPL'}</span>`;
-                html += `${info.text}${hints}`;
-                html += `</div>`;
+                // 1. 텍스트 노드 처리 (속성이 없음)
+                if (node.name === '#text' || node.name === 'br') {
+                    html += `<div class="tree-summary" onclick="highlightFullTag(${node.start}, ${node.end})">`;
+                    html += `${info.text}</div>`;
+                } 
+                // 2. 일반 태그 처리 (클릭하면 열림)
+                else {
+                    html += `<details>`;
+                    // 덩어리 자체(제목)를 클릭할 때는 전체 태그를 선택
+                    html += `<summary class="tree-summary" onclick="highlightFullTag(${node.start}, ${node.end})">`;
+                    if (info.badge) html += `<span class="badge ${info.badge}">${info.badge === 'box' ? 'BOX' : info.badge === 'text' ? 'TXT' : 'SPL'}</span>`;
+                    html += `${info.text} (속성 ${styles.length}개)`;
+                    html += `</summary>`;
 
-                // 자식 노드가 있으면 재귀적으로 들여쓰기 박스 안에 그림
-                if (node.children && node.children.length > 0) {
-                    html += `<div class="tree-children">${renderTreeUI(node.children)}</div>`;
+                    // 💡 속성(스타일) 리스트 출력
+                    if (styles.length > 0) {
+                        html += `<div class="prop-list">`;
+                        styles.forEach(prop => {
+                            // 속성 항목을 클릭하면 해당 코드만 핀포인트로 밑줄!
+                            html += `<div class="prop-item" onclick="highlightSpecificStyle(event, ${node.start}, ${node.end}, '${prop.key}')">`;
+                            html += `<span class="prop-name">${prop.koreanName}</span>`;
+                            html += `<span class="prop-value">${prop.value}</span>`;
+                            html += `</div>`;
+                        });
+                        html += `</div>`;
+                    }
+
+                    // 자식 노드가 있으면 하위에 렌더링
+                    if (node.children && node.children.length > 0) {
+                        html += `<div class="tree-children">${renderTreeUI(node.children)}</div>`;
+                    }
+                    html += `</details>`;
                 }
                 html += `</div>`;
             }
             return html;
         }
 
-        // 메인 분석 함수
         function analyzeCode(html) {
             if (!html.trim()) {
                 structureBox.innerHTML = '<div class="empty-msg">코드를 입력하면 여기에 분석 결과가 나타납니다.</div>';
@@ -240,18 +297,44 @@
             structureBox.innerHTML = renderTreeUI(tree);
         }
 
-        // 💡 핵심 4: 클릭 시 코드 편집기의 해당 텍스트를 드래그하고 스크롤 이동
-        function highlightCode(start, end) {
-            codeEditor.focus(); // 텍스트창 포커스
-            codeEditor.setSelectionRange(start, end); // 파란색으로 블록 지정
+        // 💡 덩어리(태그 전체)를 하이라이트 하는 함수
+        function highlightFullTag(start, end) {
+            codeEditor.focus();
+            codeEditor.setSelectionRange(start, end);
+            scrollToPosition(start);
+        }
 
-            // 스크롤을 해당 위치로 부드럽게 이동시키는 계산식
-            const textUpToStart = codeEditor.value.substring(0, start);
-            const lineBreaks = (textUpToStart.match(/\n/g) || []).length;
+        // 💡 특정 속성(예: 배경색)만 초정밀로 하이라이트 하는 함수
+        function highlightSpecificStyle(event, nodeStart, nodeEnd, cssKey) {
+            event.stopPropagation(); // 부모(details)가 접히는 현상 방지
             
-            // 대략적인 줄 높이(line-height)를 20px로 잡고 스크롤 위치 계산
-            const lineHeight = 20; 
-            codeEditor.scrollTop = (lineBreaks * lineHeight) - 50; // 살짝 여백을 두고 스크롤
+            const code = codeEditor.value;
+            const tagCode = code.substring(nodeStart, nodeEnd);
+            
+            // 해당 태그 안에서 '속성명: 속성값' 형태를 찾는 정규식
+            const regex = new RegExp(`(${cssKey}\\s*:\\s*[^;"]+)`, 'i');
+            const match = tagCode.match(regex);
+            
+            if (match) {
+                // 매칭된 정확한 위치 계산
+                const exactStart = nodeStart + match.index;
+                const exactEnd = exactStart + match[0].length;
+                
+                codeEditor.focus();
+                codeEditor.setSelectionRange(exactStart, exactEnd);
+                scrollToPosition(exactStart);
+            } else {
+                // 만약 못 찾으면 태그 전체 선택으로 대체
+                highlightFullTag(nodeStart, nodeEnd);
+            }
+        }
+
+        // 스크롤 이동 함수
+        function scrollToPosition(index) {
+            const textUpToStart = codeEditor.value.substring(0, index);
+            const lineBreaks = (textUpToStart.match(/\n/g) || []).length;
+            const lineHeight = 19.5; // textarea line-height에 맞춰 미세 조정
+            codeEditor.scrollTop = (lineBreaks * lineHeight) - 50;
         }
 
         function copyCode() {
@@ -262,11 +345,11 @@
             });
         }
 
-        // 초기 테스트용 예시 코드 삽입 (사용자가 테스트해볼 수 있도록)
+        // 시작 시 예시 코드 자동 삽입 (테스트용)
         window.onload = () => {
-            const sampleCode = `<div style="background-color: #2b2b2b; padding: 20px; border-radius: 10px; border: 2px solid #555;">\n  <span style="color: pink; font-weight: bold;">💖 사랑스러운 상태창 💖</span>\n  <hr style="border: 1px dashed #666; margin: 10px 0;">\n  <div style="color: white;">\n    체력: 100/100<br>\n    마나: 50/50\n  </div>\n</div>`;
+            const sampleCode = `<div style="max-width:800px; width:100%; margin:0 auto; box-sizing:border-box; word-break:keep-all; text-wrap:pretty; border:1px solid #4B5563; border-radius:12px; background-color:rgba(31, 35, 39, 0.5); padding-top:40px; padding-bottom:40px; padding-left:5%; padding-right:5%; position:relative">\n  <span style="position:absolute; top:50%; right:20px; transform:translateY(-50%); color:#4B5563">〉</span>\n  <span style="position:absolute; bottom:12px; left:50%; transform:translateX(-50%); color:#4B5563">● ○ ○</span>\n</div>`;
             codeEditor.value = sampleCode;
-            codeEditor.dispatchEvent(new Event('input')); // 강제로 한번 실행
+            codeEditor.dispatchEvent(new Event('input')); 
         }
     </script>
 </body>
