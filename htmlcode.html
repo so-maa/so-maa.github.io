@@ -17,16 +17,13 @@
 
         .section-title { font-size: 14px; font-weight: bold; color: #7aa2f7; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
         
-        /* 1. 미리보기 영역 */
         .preview-box { background-color: #ffffff; background-image: radial-gradient(#e2e8f0 1px, transparent 0); background-size: 15px 15px; border: 2px dashed #565f89; border-radius: 12px; padding: 20px; min-height: 200px; overflow-x: hidden; color: #333; }
 
-        /* 2. 코드 편집기 영역 */
         .code-editor-container { position: relative; }
         .code-textarea { width: 100%; height: 250px; background-color: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 12px; padding: 15px; font-family: Consolas, monospace; font-size: 13px; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
         .code-textarea:focus { border-color: #7aa2f7; box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2); }
         .code-textarea::selection { background-color: #364A82; color: #ffffff; }
 
-        /* 3. 한글 코드 해독기 영역 */
         .structure-box { background-color: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 15px; min-height: 300px; max-height: 500px; overflow-y: auto; }
         
         .tree-node { margin: 4px 0; font-size: 13px; line-height: 1.4; }
@@ -36,7 +33,7 @@
         .prop-list { margin-top: 5px; margin-bottom: 10px; padding-left: 15px; display: flex; flex-direction: column; gap: 4px; }
         .prop-item { display: flex; align-items: center; padding: 4px 8px; background-color: #1a1b26; border: 1px dashed #414868; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; color: #a9b1d6; }
         .prop-item:hover { background-color: #364A82; color: #fff; border-color: #7aa2f7; }
-        .prop-name { color: #9ece6a; font-weight: bold; width: 140px; flex-shrink: 0; }
+        .prop-name { color: #9ece6a; font-weight: bold; width: 150px; flex-shrink: 0; }
         .prop-value { color: #c0caf5; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
         
         .tree-children { margin-left: 15px; padding-left: 10px; border-left: 2px dashed #414868; margin-top: 4px; display: flex; flex-direction: column; }
@@ -64,44 +61,18 @@
         ::-webkit-scrollbar-thumb { background: #414868; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #7aa2f7; }
 
-        /* 💡 4. 좌측 설명 모달(팝업) 창 스타일 */
-        .explanation-popup {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            width: 320px;
-            background-color: #1f2335;
-            border: 2px solid #7aa2f7;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            /* 애니메이션 효과 (숨겨졌다가 왼쪽에서 튀어나옴) */
-            transform: translateX(-150%);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        /* 선생님 팝업창 스타일 유지 */
+        .explanation-popup { position: fixed; bottom: 30px; left: 30px; width: 340px; background-color: #1f2335; border: 2px solid #7aa2f7; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 9999; display: flex; flex-direction: column; gap: 15px; transform: translateX(-150%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .explanation-popup.show { transform: translateX(0); }
-        
         .popup-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #414868; padding-bottom: 10px; }
         .popup-title { color: #f7768e; font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 6px; }
         .popup-close-btn { background: none; border: none; color: #a9b1d6; font-size: 18px; cursor: pointer; padding: 0; }
         .popup-close-btn:hover { color: #f7768e; }
-        
         .popup-prop-name { color: #9ece6a; font-weight: bold; font-size: 16px; background-color: #1a1b26; padding: 8px; border-radius: 6px; text-align: center; }
-        .popup-content { color: #c0caf5; font-size: 13px; line-height: 1.6; word-break: keep-all; }
+        .popup-content { color: #c0caf5; font-size: 13.5px; line-height: 1.6; word-break: keep-all; }
 
-        /* 모바일에서는 중앙 하단에서 올라오도록 반응형 처리 */
         @media (max-width: 768px) {
-            .explanation-popup {
-                left: 50%;
-                bottom: 20px;
-                transform: translate(-50%, 150%);
-                width: 90vw;
-                max-width: 400px;
-            }
+            .explanation-popup { left: 50%; bottom: 20px; transform: translate(-50%, 150%); width: 90vw; max-width: 400px; }
             .explanation-popup.show { transform: translate(-50%, 0); }
         }
     </style>
@@ -121,13 +92,11 @@
             </div>
         </div>
 
-        <!-- 1. 미리보기 -->
         <div>
             <div class="section-title">👀 1단계: 실시간 미리보기</div>
             <div id="previewBox" class="preview-box"></div>
         </div>
 
-        <!-- 2. 코드 편집기 -->
         <div>
             <div class="section-title">
                 <span>💻 2단계: HTML 코드 편집기</span>
@@ -138,19 +107,18 @@
             </div>
         </div>
 
-        <!-- 3. 구조 해독기 -->
         <div>
-            <div class="section-title">📖 3단계: 구조 분석 (항목을 누르면 세부 설정이 열리고, 설정을 누르면 설명창이 뜹니다!)</div>
+            <div class="section-title">📖 3단계: 구조 분석 (코드를 짚어주고 원리를 친절하게 설명해줍니다!)</div>
             <div id="structureBox" class="structure-box">
                 <div class="empty-msg">코드를 입력하면 여기에 분석 결과가 나타납니다.</div>
             </div>
         </div>
     </div>
 
-    <!-- 💡 4. 선생님 설명 팝업창 (기본적으로 숨겨짐) -->
+    <!-- 💡 선생님 설명 팝업창 -->
     <div id="explanationPopup" class="explanation-popup">
         <div class="popup-header">
-            <span class="popup-title">💡 코딩 선생님의 설명</span>
+            <span class="popup-title">💡 1타 강사의 찰떡 비유 설명!</span>
             <button class="popup-close-btn" onclick="closeExplanation()">✕</button>
         </div>
         <div class="popup-prop-name" id="popupPropName">속성 이름</div>
@@ -165,37 +133,36 @@
         
         let currentSlot = 1;
 
-        // 💡 모든 CSS 속성 완벽 한글화 사전
+        // 💡 1. 거의 모든 CSS 속성을 커버하는 초대형 사전
         const styleDictionary = {
-            'background': '🎨 배경 (종합)',
+            'background': '🎨 배경 (색깔/그라데이션 통합)',
             'background-color': '🎨 배경색',
-            'background-image': '🖼️ 배경 이미지',
+            'background-image': '🖼️ 배경 이미지/그라데이션',
             'background-size': '📏 배경 크기',
             'background-position': '📍 배경 위치',
             'background-clip': '✂️ 배경 자르기 영역',
-            'color': '🖍️ 글자색',
-            'border': '🔲 테두리 선 (종합)',
-            'border-top': '윗면 테두리',
-            'border-bottom': '아랫면 테두리',
-            'border-left': '좌측 테두리',
-            'border-right': '우측 테두리',
+            'color': '🖍️ 글자 색상',
+            'border': '🔲 테두리 (두께/종류/색상)',
+            'border-top': '🔼 윗면 테두리',
+            'border-bottom': '🔽 아랫면 테두리',
+            'border-left': '◀️ 좌측 테두리',
+            'border-right': '▶️ 우측 테두리',
             'border-radius': '↪️ 테두리 둥글기 (라운드)',
-            'padding': '↔️ 내부 여백 (안쪽 틈)',
-            'padding-top': '위쪽 내부 여백',
-            'padding-bottom': '아래쪽 내부 여백',
-            'padding-left': '왼쪽 내부 여백',
-            'padding-right': '오른쪽 내부 여백',
-            'margin': '↔️ 외부 여백 (바깥 간격)',
-            'margin-top': '위쪽 외부 여백',
-            'margin-bottom': '아래쪽 외부 여백',
-            'margin-left': '왼쪽 외부 여백',
-            'margin-right': '오른쪽 외부 여백',
+            'padding': '↔️ 상자 안쪽 여백 (완충재)',
+            'padding-top': '위쪽 안쪽 여백',
+            'padding-bottom': '아래쪽 안쪽 여백',
+            'padding-left': '왼쪽 안쪽 여백',
+            'padding-right': '오른쪽 안쪽 여백',
+            'margin': '↔️ 상자 바깥 여백 (거리두기)',
+            'margin-top': '위쪽 바깥 여백',
+            'margin-bottom': '아래쪽 바깥 여백',
+            'margin-left': '왼쪽 바깥 여백',
+            'margin-right': '오른쪽 바깥 여백',
             'width': '📏 가로 너비',
-            'max-width': '📏 최대 가로 너비',
-            'min-width': '📏 최소 가로 너비',
+            'max-width': '📏 최대 가로 너비 한계선',
+            'min-width': '📏 최소 가로 너비 한계선',
             'height': '↕️ 세로 높이',
             'max-height': '↕️ 최대 세로 높이',
-            'min-height': '↕️ 최소 세로 높이',
             'font-size': '🅰️ 글자 크기',
             'font-weight': '𝐁 글자 굵기',
             'font-family': '🔤 폰트(글꼴)',
@@ -203,62 +170,78 @@
             'text-align': '📑 글자 정렬 (좌/우/중앙)',
             'line-height': '↕️ 줄 간격',
             'letter-spacing': '↔️ 글자 사이 간격(자간)',
-            'word-spacing': '↔️ 단어 사이 간격',
             'word-break': '✂️ 단어 줄바꿈 방식',
-            'text-wrap': '🎀 문단 래핑 방식',
-            'white-space': '공백 및 줄바꿈 처리',
+            'text-wrap': '🎀 문단 예쁘게 맞추기',
+            'white-space': '빈칸 및 줄바꿈 처리',
             'text-decoration': '밑줄/취소선',
-            'text-shadow': '👤 글자 그림자',
             'box-shadow': '👤 박스 그림자 효과',
-            'opacity': '👻 투명도 (0~1)',
-            'display': '📐 화면 배치 방식 (Flex 등)',
-            'flex-direction': '가로/세로 방향 설정',
+            'text-shadow': '👤 글자 그림자 효과',
+            'opacity': '👻 투명도 (0 ~ 1)',
+            'display': '📐 요소 배치 방식 (Flex, Grid 등)',
+            'flex-direction': '가로/세로 나열 방향',
             'justify-content': '가로 정렬 방식',
             'align-items': '세로 정렬 방식',
-            'gap': '요소 사이 간격',
-            'overflow': '넘침 처리 방식',
-            'overflow-x': '가로 넘침 처리',
-            'overflow-y': '세로 넘침 처리',
-            'position': '📍 위치 지정 기준',
-            'top': '위쪽 위치',
-            'bottom': '아래쪽 위치',
-            'left': '왼쪽 위치',
-            'right': '오른쪽 위치',
-            'transform': '🔄 도형 변형 (이동/회전)',
-            'z-index': '겹침 순서 (앞/뒤)',
-            'box-sizing': '박스 크기 계산 기준',
+            'gap': '요소들 사이의 틈(간격)',
+            'overflow': '상자 밖으로 넘칠 때 처리',
+            'overflow-x': '가로로 넘칠 때 처리',
+            'overflow-y': '세로로 넘칠 때 처리',
+            'position': '📍 요소 위치 지정 기준',
+            'top': '위에서부터 위치',
+            'bottom': '아래서부터 위치',
+            'left': '왼쪽에서부터 위치',
+            'right': '오른쪽에서부터 위치',
+            'transform': '🔄 모양 변형 (이동/회전/확대)',
+            'z-index': '햄버거처럼 겹치는 순서',
+            'box-sizing': '박스 크기 계산법',
             'cursor': '🖱️ 마우스 커서 모양',
-            'transition': '애니메이션 속도',
             'aspect-ratio': '가로세로 비율',
-            'isolation': '독립된 렌더링 레이어',
-            '-webkit-mask-image': '마스크(가리기) 효과',
-            '-webkit-background-clip': '글자에만 배경 씌우기'
+            'isolation': '독립된 투명도 레이어',
+            '-webkit-mask-image': '🎭 마스크 (가리기 효과)',
+            '-webkit-background-clip': '✂️ 배경을 글자 모양으로 자르기',
+            '-webkit-text-fill-color': '투명한 글자 색상',
+            '-webkit-font-smoothing': '폰트 가장자리 부드럽게',
+            '-webkit-overflow-scrolling': '📱 아이폰 터치 스크롤 관성',
+            'scroll-snap-type': '🧲 스크롤 자석 효과 (스냅)',
+            'scroll-snap-align': '🧲 스크롤 자석 붙는 위치',
+            'backdrop-filter': '🪟 배경 유리창 블러 효과',
+            'filter': '✨ 이미지 필터 (흑백, 블러 등)',
+            'object-fit': '이미지 찌그러짐 방지 비율'
         };
 
-        // 💡 선생님의 상세 설명서 (자세한 설명이 필요한 항목들)
+        // 💡 2. 초보자를 위한 '아!' 소리가 나오는 찰떡 비유 백과사전
         const explanationDictionary = {
-            'box-sizing': '요소의 크기를 계산하는 방식입니다.\n기본적으로 여백(Padding)을 추가하면 박스가 뚱뚱해지지만, <b>border-box</b>로 설정하면 내부 여백을 포함하여 원래 정해둔 크기를 유지하므로 레이아웃이 절대 깨지지 않습니다. (로판 템플릿 필수 조건!)',
-            'word-break': '글자가 박스 오른쪽 끝에 닿았을 때 어떻게 줄을 바꿀지 결정합니다.\n<b>keep-all</b>을 사용하면 "안녕하세요" 같은 한글 단어가 "안녕하\n세요" 처럼 어색하게 쪼개지지 않고 단어 단위로 통째로 줄바꿈되어 읽기가 훨씬 편안해집니다.',
-            'text-wrap': '글이 여러 줄로 래핑될 때의 방식입니다.\n<b>pretty</b>를 사용하면 문단 마지막 줄에 단어 하나만 덜렁 외롭게 남지 않도록 브라우저가 알아서 예쁘게 폭을 조정해줍니다.',
-            'position': '요소를 캔버스에 띄우는 기준을 정합니다.\n- <b>absolute</b>: 공중에 띄워서 원하는 위치(top, left 등)에 강제로 고정합니다.\n- <b>relative</b>: 원래 자기 위치를 유지하되, 내부에 있는 absolute 자식들의 "기준점(울타리)" 역할을 해줍니다.',
-            'display': '상자를 화면에 어떻게 놓을지 정합니다.\n<b>flex</b>를 사용하면 상자 안의 내용물(글자나 다른 상자들)을 가로로 나란히 눕히거나 세로로 세우는 등 매우 유연하게 정렬할 수 있는 마법의 도구입니다.',
-            'transform': '요소의 모양, 크기, 위치를 변형시킵니다.\n특히 <b>translateY(-50%)</b>처럼 사용하면 요소를 정확히 절반만큼 끌어올려 완벽한 "수직 중앙 정렬"을 맞출 때 단골로 쓰입니다.',
-            'overflow': '상자 안의 내용물이 상자 크기보다 커서 밖으로 넘칠 때 어떻게 할지 정합니다.\n<b>hidden</b>을 사용하면 넘치는 부분을 가위로 자르듯 깔끔하게 숨겨서 둥근 모서리(border-radius) 밖으로 색이 삐져나가지 않게 해줍니다.',
-            'z-index': '요소들이 햄버거처럼 겹쳤을 때 누가 맨 위로 올라올지 정하는 순서입니다.\n<b>숫자가 클수록</b> 화면의 가장 앞쪽(사용자 쪽)으로 튀어나옵니다.',
-            'background-clip': '배경색을 어디까지 칠할지 결정합니다.\n<b>text</b>로 설정하면 상자가 아닌 "글자 모양에만" 배경이 색칠되어서, 글자에 화려한 그라데이션을 넣을 때 사용합니다.',
-            'justify-content': 'display: flex 상태에서 요소들을 <b>가로(메인 방향)</b>로 정렬합니다.\n- <b>space-between</b>: 양 끝으로 쫙 벌려서 배치합니다.\n- <b>center</b>: 가운데로 예쁘게 모아줍니다.',
-            'align-items': 'display: flex 상태에서 요소들을 <b>세로(교차 방향)</b>로 정렬합니다.\n<b>center</b>로 설정하면 크기가 다른 텍스트나 이미지들이 세로 중앙에 딱 맞게 정렬됩니다.',
-            'max-width': '화면이 아무리 넓어져도 상자가 늘어날 수 있는 <b>최대 크기 한계선</b>을 정해줍니다.\n스마트폰에서는 화면 꽉 차게 보이고, PC에서는 너무 뚱뚱해지지 않게 막아주는 역할을 합니다.',
-            'gap': '상자 안에 있는 요소들 사이의 <b>틈(여백)</b> 크기를 지정합니다.\nmargin을 쓰지 않아도 10px씩 일정하게 틈을 벌릴 수 있어 디자인이 아주 깔끔해집니다.',
-            'opacity': '요소가 얼마나 투명한지(유령 같은지) 조절합니다.\n<b>0</b>은 완전 투명해서 안 보임, <b>1</b>은 완전 불투명이며, <b>0.5</b>처럼 소수점을 쓰면 뒤가 비치는 반투명 상태가 됩니다.',
-            
-            // 태그(덩어리)에 대한 설명
-            'div': '웹페이지를 만들 때 가장 많이 쓰는 <b>다목적 투명 상자</b>입니다.\n이 상자 안에 글자를 넣거나 색을 칠해서 상태창의 틀을 만듭니다.',
-            'span': '박스를 만들지 않고 <b>글자 중간에만 딱 끼어들어서</b> 특정 글자만 색깔이나 크기를 바꿀 때 쓰는 이름표입니다.',
-            'details': '클릭하면 아래로 내용이 스르륵 열리는 <b>접기/펼치기 폴더</b>의 전체 틀입니다.\n로판에서 호감도나 스탯을 숨겨둘 때 아주 유용합니다.'
+            'margin': '내 상자의 울타리 바깥으로 남들이 다가오지 못하게 밀어내는 <b>"거리두기"</b> 구역입니다.<br><br>ex) <code>margin: 10px auto;</code>라고 쓰면 위아래로 10px씩 거리를 두고, 좌우는 자동으로 중앙에 딱 맞춥니다.',
+            'padding': '상자 안쪽에 부서지지 않게 <b>"뽁뽁이(완충재)"</b>를 채워 넣는 것과 같습니다.<br><br>글자나 이미지가 상자 벽에 바짝 붙어서 답답해 보일 때 padding을 높여주면 숨통이 트입니다.',
+            'border-radius': '각진 네모 상자의 모서리를 <b>"사포로 둥글게 갈아내는"</b> 효과입니다.<br><br>숫자를 크게 할수록 동글동글해지며, <code>50%</code>를 넣으면 완벽한 원이나 타원이 됩니다.',
+            'box-sizing': '<b>border-box</b>를 사용하면 상자의 크기를 먼저 픽스해두고, 그 안에서 테두리 두께와 뽁뽁이(padding)를 욱여넣습니다.<br><br>여백을 아무리 늘려도 상자가 뚱뚱해지면서 레이아웃이 박살나는 대참사를 막아주는 필수 공식입니다.',
+            'word-break': '글자가 박스 끝에 닿았을 때 어떻게 줄을 바꿀까요?<br><b>keep-all</b>을 쓰면 "안녕하세요"라는 단어가 "안녕하/세요"로 어색하게 쪼개지지 않고, 단어 단위로 예쁘게 줄바꿈이 일어납니다.',
+            'text-wrap': '<b>pretty</b>를 사용하면 문단 마지막 줄에 단어 하나만 덜렁 외롭게 남지 않도록, 컴퓨터가 알아서 가장 예쁜 비율로 줄바꿈 폭을 조정해줍니다.',
+            'position': '요소를 공중에 띄우는 마법입니다.<br>- <b>absolute</b>: 공중에 띄워서 원하는 위치에 압정으로 콱 박아 고정합니다.<br>- <b>relative</b>: 원래 자기 자리를 지키면서도, 공중에 뜬(absolute) 자식 요소들이 도망가지 못하게 막는 "울타리" 역할을 해줍니다.',
+            'display': '<b>flex</b>는 상자 안의 내용물들을 레고 블록처럼 가로로 줄을 세우거나 세로로 차곡차곡 정렬해주는 <b>마법의 지휘관</b>입니다.<br><br>상태창에서 아이템들을 가로로 예쁘게 배열할 때 무조건 쓰입니다.',
+            'transform': '도형을 밀거나, 돌리거나, 찌그러뜨립니다.<br>특히 <b>translateY(-50%)</b>는 상자를 자기 키의 반만큼 훅 끌어올려서, 완벽한 "수직 중앙 정렬"을 맞출 때 쓰는 개발자들의 꿀팁입니다.',
+            'overflow': '상자보다 내용물이 커서 밖으로 삐져나갈 때 어떻게 할까요?<br><b>hidden</b>을 쓰면 삐져나온 부분에 투명 망토를 씌워서 가위로 자른 듯 깔끔하게 숨겨줍니다. 동그란 프로필 사진 만들 때 필수!',
+            'z-index': '햄버거의 재료들이 겹쳤을 때 누가 맨 위로(빵 쪽으로) 올라올지 정하는 <b>전투력 수치</b>입니다.<br>숫자가 높을수록 화면의 가장 앞쪽(사용자 쪽)으로 튀어나와 다른 요소들을 덮어버립니다.',
+            'gap': 'display: flex 상태일 때, 안에 있는 블록들 사이의 <b>간격(틈)</b>을 정해줍니다.<br>margin을 복잡하게 계산하지 않아도 요소들 사이에 깔끔하게 빈 공간을 뚫어줍니다.',
+            'opacity': '요소가 얼마나 투명한지(유령 같은지) 정합니다.<br><b>0</b>은 완전 투명(안 보임), <b>1</b>은 완전 불투명입니다. <b>0.5</b>처럼 소수점을 쓰면 반투명한 예쁜 유리창 느낌이 납니다.',
+            '-webkit-overflow-scrolling': '<b>touch</b>를 넣으면 모바일(아이폰)에서 스크롤을 튕겼을 때, 얼음판 위를 미끄러지듯 <b>부드럽고 관성 있게 쭈루룩~</b> 넘어가게 해주는 터치 마법입니다.',
+            'scroll-snap-type': '스크롤을 내릴 때 화면이 어중간하게 멈추지 않고, 다음 항목에 <b>자석처럼 착! 하고 달라붙게</b> 만들어 줍니다. 유튜브 릴스나 쇼츠 넘길 때의 그 쫀득한 느낌입니다.',
+            'backdrop-filter': '요소 <b>뒤에 있는 배경</b>을 욕실의 반투명 유리창이나 안개 낀 것처럼 뽀얗게(블러) 만들어주는 초고급 효과입니다. (주로 rgba 투명 배경과 세트로 쓰입니다.)',
+            'background': '배경색뿐만 아니라 <b>그라데이션(linear-gradient)</b>을 넣을 때 자주 쓰입니다.<br>ex) 위에서 아래로 빨강에서 파랑으로 스르륵 변하게 칠해주세요! 라는 명령을 내릴 수 있습니다.',
+            '-webkit-background-clip': '배경색을 네모 상자에 칠하는 게 아니라, <b>글자 모양에 맞춰서 오려냅니다(text).</b><br>글자에 예쁜 무지개 그라데이션 색상을 입힐 때 쓰는 특수 기술입니다.',
+            'box-shadow': '상자 뒤에 은은한 <b>그림자</b>를 만들어줍니다.<br>평면적인 디자인이 갑자기 공중에 살짝 떠 있는 것처럼 입체적이고 고급스러워 보입니다.',
+            'text-shadow': '글자 뒤에 그림자를 넣거나, 그림자를 빽빽하게 넣어서 <b>테두리(외곽선)가 있는 글자</b>를 만들 때 사용하는 기술입니다.'
         };
 
-        // 템플릿 슬롯 및 로컬스토리지
+        // 💡 3. 기본 설명 생성기
+        function getExplanation(key, koreanName) {
+            if (explanationDictionary[key]) {
+                return explanationDictionary[key];
+            }
+            // 사전에 명시된 긴 비유가 없으면, 일반적이고 친절한 설명 생성
+            return `이 속성은 상태창에서 <b>[ ${koreanName} ]</b> 역할을 합니다.<br><br>디자인을 더 예쁘고 섬세하게 꾸며주는 중요한 요소입니다. 편집기에서 숫자를 키우거나 색상 코드를 바꿔보면서 디자인이 어떻게 변하는지 실시간으로 관찰해 보세요!`;
+        }
+
+        // 로컬스토리지 및 슬롯
         function switchSlot(num) {
             if(currentSlot === num) return;
             saveData();
@@ -266,7 +249,7 @@
             document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('slot-' + num).classList.add('active');
             loadData(num);
-            closeExplanation(); // 슬롯 변경 시 팝업 닫기
+            closeExplanation();
         }
 
         function saveData() { localStorage.setItem('htmlCodeSlot_' + currentSlot, codeEditor.value); }
@@ -339,7 +322,7 @@
             if (n === 'strong' || n === 'b') return { badge: 'text', text: '𝗕 굵은 글씨' };
             if (n === '#text') {
                 const previewText = node.text.length > 15 ? node.text.substring(0, 15) + '...' : node.text;
-                return { badge: '', text: `📝 텍스트 내용: "${previewText}"` };
+                return { badge: '', text: `📝 텍스트: "${previewText}"` };
             }
             return { badge: '', text: `<${n}> 태그` };
         }
@@ -375,7 +358,6 @@
                 html += `<div class="tree-node">`;
                 
                 if (node.name === '#text' || node.name === 'br') {
-                    // 태그 클릭 시 모달창(설명)도 함께 호출
                     html += `<div class="tree-summary" onclick="highlightFullTag(event, ${node.start}, ${node.end}, '${node.name}', '${info.text}')">`;
                     html += `${info.text}</div>`;
                 } 
@@ -389,7 +371,6 @@
                     if (styles.length > 0) {
                         html += `<div class="prop-list">`;
                         styles.forEach(prop => {
-                            // 속성 클릭 시 하이라이트 + 설명 모달창 띄우기
                             html += `<div class="prop-item" onclick="highlightSpecificStyle(event, ${node.start}, ${node.openEnd}, '${prop.key}', '${prop.koreanName}')">`;
                             html += `<span class="prop-name">${prop.koreanName}</span>`;
                             html += `<span class="prop-value">${prop.value}</span>`;
@@ -418,38 +399,32 @@
             structureBox.innerHTML = renderTreeUI(tree);
         }
 
-        // 💡 설명 팝업창을 띄우는 함수
         function showExplanation(key, koreanName) {
             const propNameEl = document.getElementById('popupPropName');
             const contentEl = document.getElementById('popupContent');
             
             propNameEl.textContent = koreanName;
-
-            // 사전에 자세한 설명이 등록되어 있는지 확인
-            if (explanationDictionary[key]) {
-                // 줄바꿈 문자를 <br> 태그로 변환하여 출력
-                contentEl.innerHTML = explanationDictionary[key].replace(/\n/g, '<br><br>');
-            } else {
-                // 설명이 없는 기본 속성은 범용 텍스트 출력
-                contentEl.innerHTML = `이 속성은 <b>${koreanName}</b> 역할을 합니다.<br><br>상태창 디자인을 예쁘게 꾸미는 요소 중 하나입니다. 코드를 직접 수정하여 디자인이 어떻게 바뀌는지 확인해 보세요!`;
-            }
+            contentEl.innerHTML = getExplanation(key, koreanName);
             
             explanationPopup.classList.add('show');
         }
 
-        // X 버튼으로 팝업창 닫기
         function closeExplanation() {
             explanationPopup.classList.remove('show');
         }
 
+        // 💡 4. 코드창 강제 스크롤링 제거 (focus 시 preventScroll 사용)
         function highlightFullTag(event, start, end, tagName, tagKoreanName) {
             if(event) event.stopPropagation();
-            codeEditor.focus();
-            codeEditor.setSelectionRange(start, end);
-            scrollToPosition(start);
             
-            // 태그 클릭 시에도 설명창 띄우기
-            if(tagName && tagName !== '#text') showExplanation(tagName, tagKoreanName);
+            // 포커스를 주되 화면이 튕기듯 올라가는 현상 방지!
+            codeEditor.focus({ preventScroll: true });
+            codeEditor.setSelectionRange(start, end);
+            
+            if(tagName && tagName !== '#text') {
+                const explainKey = (tagName === 'div' || tagName === 'details' || tagName === 'span') ? tagName : '기본 태그';
+                showExplanation(explainKey, tagKoreanName);
+            }
         }
 
         function highlightSpecificStyle(event, nodeStart, nodeOpenEnd, cssKey, cssKoreanName) {
@@ -458,6 +433,7 @@
             const code = codeEditor.value;
             const tagCode = code.substring(nodeStart, nodeOpenEnd);
             
+            // 정확한 키워드 매칭 정규식
             const regex = new RegExp(`(?<![\\w-])${cssKey.replace(/-/g, '\\-')}\\s*:\\s*[^;"]+`, 'i');
             const match = tagCode.match(regex);
             
@@ -465,22 +441,14 @@
                 const exactStart = nodeStart + match.index;
                 const exactEnd = exactStart + match[0].length;
                 
-                codeEditor.focus();
+                // 화면 튕김 현상 완벽 방지
+                codeEditor.focus({ preventScroll: true });
                 codeEditor.setSelectionRange(exactStart, exactEnd);
-                scrollToPosition(exactStart);
             } else {
                 highlightFullTag(null, nodeStart, nodeOpenEnd);
             }
             
-            // 💡 속성 클릭 시 왼쪽 하단에 설명창 띄우기!
             showExplanation(cssKey, cssKoreanName);
-        }
-
-        function scrollToPosition(index) {
-            const textUpToStart = codeEditor.value.substring(0, index);
-            const lineBreaks = (textUpToStart.match(/\n/g) || []).length;
-            const lineHeight = 19.5; 
-            codeEditor.scrollTop = (lineBreaks * lineHeight) - 50;
         }
 
         function copyCode() {
@@ -495,3 +463,4 @@
     </script>
 </body>
 </html>
+
