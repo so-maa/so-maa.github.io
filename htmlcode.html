@@ -8,7 +8,14 @@
         body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 20px; padding-bottom: 100px; display: flex; justify-content: center; }
         .app-container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }
         
-        .header-title { font-size: 22px; font-weight: bold; color: #c0caf5; margin-bottom: 5px; border-bottom: 2px solid #414868; padding-bottom: 10px; }
+        /* 💡 수정된 상단 네비게이션 (타이틀 + 5개 템플릿 슬롯) */
+        .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .tracker-title { font-size: 20px; font-weight: bold; color: #c0caf5; letter-spacing: 0.5px; }
+        
+        .slot-container { display: flex; gap: 6px; }
+        .slot-btn { background-color: #24283b; color: #565f89; border: 1px solid #414868; border-radius: 6px; width: 32px; height: 32px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .slot-btn.active { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
+
         .section-title { font-size: 14px; font-weight: bold; color: #7aa2f7; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
         
         /* 1. 상단: 미리보기 영역 */
@@ -23,22 +30,18 @@
         /* 3. 하단: 한글 코드 해독기 영역 */
         .structure-box { background-color: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 15px; min-height: 300px; max-height: 500px; overflow-y: auto; }
         
-        /* 트리(Tree) 구조 스타일 */
         .tree-node { margin: 4px 0; font-size: 13px; line-height: 1.4; }
         .tree-summary { display: inline-block; padding: 6px 10px; background-color: #1f2335; border: 1px solid #414868; border-radius: 6px; cursor: pointer; transition: all 0.2s; color: #c0caf5; user-select: none; word-break: break-all; font-weight: bold; }
         .tree-summary:hover { background-color: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
         
-        /* 💡 추가된 속성 세부 리스트 (한글 번역 목록) */
         .prop-list { margin-top: 5px; margin-bottom: 10px; padding-left: 15px; display: flex; flex-direction: column; gap: 4px; }
         .prop-item { display: flex; align-items: center; padding: 4px 8px; background-color: #1a1b26; border: 1px dashed #414868; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; color: #a9b1d6; }
         .prop-item:hover { background-color: #364A82; color: #fff; border-color: #7aa2f7; }
         .prop-name { color: #9ece6a; font-weight: bold; width: 130px; flex-shrink: 0; }
         .prop-value { color: #c0caf5; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
         
-        /* 자식 요소 들여쓰기 */
         .tree-children { margin-left: 15px; padding-left: 10px; border-left: 2px dashed #414868; margin-top: 4px; display: flex; flex-direction: column; }
         
-        /* 태그별 색상 뱃지 */
         .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-right: 6px; background-color: #414868; color: #a9b1d6; }
         .badge.box { background-color: #7aa2f7; color: #1a1b26; }
         .badge.text { background-color: #bb9af7; color: #1a1b26; }
@@ -46,9 +49,13 @@
         
         .empty-msg { text-align: center; color: #565f89; font-size: 13px; margin-top: 50px; }
         .action-btn { background-color: #414868; color: #c0caf5; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .action-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
+        
+        @media (hover: hover) {
+            .action-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
+            .slot-btn:hover:not(.active) { background-color: #414868; color: #c0caf5; }
+        }
+        .action-btn:active { background-color: #7aa2f7; color: #1a1b26; }
 
-        /* <details> 태그 화살표 커스텀 */
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         details[open] > summary { background-color: #364A82; border-color: #7aa2f7; color: #fff; }
@@ -62,7 +69,17 @@
 <body>
 
     <div class="app-container">
-        <div class="header-title">🔍 상태창 초정밀 해독기</div>
+        <!-- 💡 상단 트래커 스타일 네비게이션 (타이틀 변경 및 템플릿 슬롯 추가) -->
+        <div class="top-nav-bar">
+            <div class="tracker-title">HTML 해독기</div>
+            <div class="slot-container">
+                <button class="slot-btn active" id="slot-1" onclick="switchSlot(1)">1</button>
+                <button class="slot-btn" id="slot-2" onclick="switchSlot(2)">2</button>
+                <button class="slot-btn" id="slot-3" onclick="switchSlot(3)">3</button>
+                <button class="slot-btn" id="slot-4" onclick="switchSlot(4)">4</button>
+                <button class="slot-btn" id="slot-5" onclick="switchSlot(5)">5</button>
+            </div>
+        </div>
 
         <!-- 1. 미리보기 영역 -->
         <div>
@@ -94,8 +111,9 @@
         const previewBox = document.getElementById('previewBox');
         const codeEditor = document.getElementById('codeEditor');
         const structureBox = document.getElementById('structureBox');
+        
+        let currentSlot = 1;
 
-        // 💡 영어 CSS 속성을 친절한 한글로 번역해주는 사전
         const styleDictionary = {
             'background': '🎨 배경 (색상/그라데이션)',
             'background-color': '🎨 배경색',
@@ -133,13 +151,37 @@
             'transform': '도형 변형 (이동/회전)'
         };
 
+        // 💡 1. 템플릿 슬롯 및 자동 저장 기능
+        function switchSlot(num) {
+            if(currentSlot === num) return;
+            saveData(); // 기존 데이터 저장
+            
+            currentSlot = num;
+            document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('slot-' + num).classList.add('active');
+            
+            loadData(num); // 새 데이터 불러오기
+        }
+
+        function saveData() {
+            localStorage.setItem('htmlCodeSlot_' + currentSlot, codeEditor.value);
+        }
+
+        function loadData(num) {
+            const savedCode = localStorage.getItem('htmlCodeSlot_' + num) || '';
+            codeEditor.value = savedCode;
+            codeEditor.dispatchEvent(new Event('input')); // 입력 이벤트 강제 발생시켜 화면 새로고침
+        }
+
+        // 입력 시 자동 저장 및 화면 업데이트
         codeEditor.addEventListener('input', () => {
             const html = codeEditor.value;
             previewBox.innerHTML = html;
             analyzeCode(html);
+            saveData();
         });
 
-        // HTML 태그 분리 토크나이저
+        // 💡 2. 코드 구조 파악 (정밀 위치 기록 포함)
         function tokenizeHTML(html) {
             const regex = /<(\/?)([a-zA-Z0-9\-]+)([^>]*?)>|([^<]+)/g;
             let tokens = [];
@@ -163,9 +205,8 @@
             return tokens;
         }
 
-        // 트리(Tree) 조립
         function buildTree(tokens, htmlLength) {
-            let root = { name: 'root', children: [], start: 0, end: htmlLength };
+            let root = { name: 'root', children: [], start: 0, openEnd: htmlLength, end: htmlLength };
             let stack = [root];
             const voidElements = ['br', 'hr', 'img', 'input'];
 
@@ -173,7 +214,8 @@
                 let parent = stack[stack.length - 1];
                 
                 if (t.isTag && !t.isClose) {
-                    let node = { name: t.name, start: t.start, end: t.end, children: [], attrs: t.attrs };
+                    // 여는 태그가 끝나는 위치(openEnd)를 정확히 기록합니다.
+                    let node = { name: t.name, start: t.start, openEnd: t.end, end: t.end, children: [], attrs: t.attrs };
                     parent.children.push(node);
                     if (!voidElements.includes(t.name)) stack.push(node);
                 } 
@@ -193,7 +235,6 @@
             return root.children;
         }
 
-        // 태그 한글 번역
         function translateTag(node) {
             const n = node.name;
             if (n === 'div') return { badge: 'box', text: '📦 구역 (도형/상자)' };
@@ -210,37 +251,31 @@
             return { badge: '', text: `<${n}> 태그` };
         }
 
-        // 💡 핵심: style 속성 문자열을 분석하여 개별 CSS 항목으로 쪼개는 함수
         function parseStyles(attrString) {
             if (!attrString) return [];
-            
-            // style="..." 또는 style='...' 형태 추출
             const styleMatch = attrString.match(/style\s*=\s*(["'])(.*?)\1/i);
             if (!styleMatch) return [];
             
             const styleContent = styleMatch[2];
             const properties = [];
-            
-            // 세미콜론(;) 단위로 분리 (빈 문자열 제거)
             const rules = styleContent.split(';').filter(rule => rule.trim() !== '');
             
             rules.forEach(rule => {
                 const parts = rule.split(':');
                 if (parts.length >= 2) {
                     const key = parts[0].trim().toLowerCase();
-                    const value = parts.slice(1).join(':').trim(); // 속성값에 콜론이 있을 수 있음(url 등)
+                    const value = parts.slice(1).join(':').trim(); 
                     
                     properties.push({
                         key: key,
                         value: value,
-                        koreanName: styleDictionary[key] || key // 사전에 없으면 원래 영어 사용
+                        koreanName: styleDictionary[key] || key 
                     });
                 }
             });
             return properties;
         }
 
-        // 트리 렌더링
         function renderTreeUI(nodes) {
             let html = '';
             for (let node of nodes) {
@@ -249,26 +284,22 @@
                 
                 html += `<div class="tree-node">`;
                 
-                // 1. 텍스트 노드 처리 (속성이 없음)
                 if (node.name === '#text' || node.name === 'br') {
                     html += `<div class="tree-summary" onclick="highlightFullTag(${node.start}, ${node.end})">`;
                     html += `${info.text}</div>`;
                 } 
-                // 2. 일반 태그 처리 (클릭하면 열림)
                 else {
                     html += `<details>`;
-                    // 덩어리 자체(제목)를 클릭할 때는 전체 태그를 선택
                     html += `<summary class="tree-summary" onclick="highlightFullTag(${node.start}, ${node.end})">`;
                     if (info.badge) html += `<span class="badge ${info.badge}">${info.badge === 'box' ? 'BOX' : info.badge === 'text' ? 'TXT' : 'SPL'}</span>`;
                     html += `${info.text} (속성 ${styles.length}개)`;
                     html += `</summary>`;
 
-                    // 💡 속성(스타일) 리스트 출력
                     if (styles.length > 0) {
                         html += `<div class="prop-list">`;
                         styles.forEach(prop => {
-                            // 속성 항목을 클릭하면 해당 코드만 핀포인트로 밑줄!
-                            html += `<div class="prop-item" onclick="highlightSpecificStyle(event, ${node.start}, ${node.end}, '${prop.key}')">`;
+                            // 💡 오픈 엔드(여는 태그 끝) 인덱스를 함께 전달하여 정밀 검색 수행
+                            html += `<div class="prop-item" onclick="highlightSpecificStyle(event, ${node.start}, ${node.openEnd}, '${prop.key}')">`;
                             html += `<span class="prop-name">${prop.koreanName}</span>`;
                             html += `<span class="prop-value">${prop.value}</span>`;
                             html += `</div>`;
@@ -276,7 +307,6 @@
                         html += `</div>`;
                     }
 
-                    // 자식 노드가 있으면 하위에 렌더링
                     if (node.children && node.children.length > 0) {
                         html += `<div class="tree-children">${renderTreeUI(node.children)}</div>`;
                     }
@@ -297,26 +327,26 @@
             structureBox.innerHTML = renderTreeUI(tree);
         }
 
-        // 💡 덩어리(태그 전체)를 하이라이트 하는 함수
         function highlightFullTag(start, end) {
             codeEditor.focus();
             codeEditor.setSelectionRange(start, end);
             scrollToPosition(start);
         }
 
-        // 💡 특정 속성(예: 배경색)만 초정밀로 하이라이트 하는 함수
-        function highlightSpecificStyle(event, nodeStart, nodeEnd, cssKey) {
-            event.stopPropagation(); // 부모(details)가 접히는 현상 방지
+        // 💡 3. 오류 100% 수정된 초정밀 속성 하이라이트 엔진
+        function highlightSpecificStyle(event, nodeStart, nodeOpenEnd, cssKey) {
+            event.stopPropagation(); 
             
             const code = codeEditor.value;
-            const tagCode = code.substring(nodeStart, nodeEnd);
+            // 🚨 핵심 포인트: '여는 태그 안에서만' 검색하여 자식 태그의 속성을 잘못 찾는 일 원천 차단
+            const tagCode = code.substring(nodeStart, nodeOpenEnd);
             
-            // 해당 태그 안에서 '속성명: 속성값' 형태를 찾는 정규식
-            const regex = new RegExp(`(${cssKey}\\s*:\\s*[^;"]+)`, 'i');
+            // 🚨 핵심 포인트: 정규식에 (?<![\w-]) 를 추가하여 color가 background-color에 반응하는 오차 원천 차단
+            // cssKey에 붙어있는 앞 글자가 알파벳이나 하이픈(-)이 아닐 때만 매칭!
+            const regex = new RegExp(`(?<![\\w-])${cssKey.replace(/-/g, '\\-')}\\s*:\\s*[^;"]+`, 'i');
             const match = tagCode.match(regex);
             
             if (match) {
-                // 매칭된 정확한 위치 계산
                 const exactStart = nodeStart + match.index;
                 const exactEnd = exactStart + match[0].length;
                 
@@ -324,16 +354,15 @@
                 codeEditor.setSelectionRange(exactStart, exactEnd);
                 scrollToPosition(exactStart);
             } else {
-                // 만약 못 찾으면 태그 전체 선택으로 대체
-                highlightFullTag(nodeStart, nodeEnd);
+                // 만약 구문이 특이해서 못 찾을 경우, 여는 태그만 블록 지정
+                highlightFullTag(nodeStart, nodeOpenEnd);
             }
         }
 
-        // 스크롤 이동 함수
         function scrollToPosition(index) {
             const textUpToStart = codeEditor.value.substring(0, index);
             const lineBreaks = (textUpToStart.match(/\n/g) || []).length;
-            const lineHeight = 19.5; // textarea line-height에 맞춰 미세 조정
+            const lineHeight = 19.5; 
             codeEditor.scrollTop = (lineBreaks * lineHeight) - 50;
         }
 
@@ -345,11 +374,9 @@
             });
         }
 
-        // 시작 시 예시 코드 자동 삽입 (테스트용)
+        // 💡 창이 열릴 때 1번 슬롯(혹은 기존 내용)을 자동으로 불러옵니다.
         window.onload = () => {
-            const sampleCode = `<div style="max-width:800px; width:100%; margin:0 auto; box-sizing:border-box; word-break:keep-all; text-wrap:pretty; border:1px solid #4B5563; border-radius:12px; background-color:rgba(31, 35, 39, 0.5); padding-top:40px; padding-bottom:40px; padding-left:5%; padding-right:5%; position:relative">\n  <span style="position:absolute; top:50%; right:20px; transform:translateY(-50%); color:#4B5563">〉</span>\n  <span style="position:absolute; bottom:12px; left:50%; transform:translateX(-50%); color:#4B5563">● ○ ○</span>\n</div>`;
-            codeEditor.value = sampleCode;
-            codeEditor.dispatchEvent(new Event('input')); 
+            loadData(1);
         }
     </script>
 </body>
