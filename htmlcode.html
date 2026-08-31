@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HTML 해독기</title>
     <style>
-        /* 모바일 최적화를 위해 body 패딩 조절 */
-        body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 15px; padding-bottom: 100px; display: flex; justify-content: center; }
+        body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 15px; padding-bottom: 100px; display: flex; justify-content: center; overflow-x: hidden; }
         
         .app-wrapper { width: 100%; max-width: 900px; transition: filter 0.3s ease; }
         .app-wrapper.blurred { filter: blur(8px) brightness(0.6); pointer-events: none; user-select: none; }
@@ -22,11 +21,48 @@
 
         .section-title { font-size: 14px; font-weight: bold; color: #7aa2f7; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
         
-        /* 💡 모바일 화면에 꽉 차도록 넓이(100%)와 박스 사이징 적용 */
-        .preview-box { width: 100%; box-sizing: border-box; background-color: #ffffff; background-image: radial-gradient(#e2e8f0 1px, transparent 0); background-size: 15px 15px; border: 2px dashed #565f89; border-radius: 12px; padding: 15px; min-height: 150px; overflow-x: hidden; color: #333; }
+        /* 💡 1단계, 2단계 모바일 화면 좌우 꽉 차게 넓이 조정 (테두리 상하만 유지) */
+        .preview-box { 
+            width: calc(100% + 30px); 
+            margin-left: -15px; 
+            margin-right: -15px; 
+            box-sizing: border-box; 
+            background-color: #ffffff; 
+            background-image: radial-gradient(#e2e8f0 1px, transparent 0); 
+            background-size: 15px 15px; 
+            border: 2px dashed #565f89; 
+            border-left: none; 
+            border-right: none; 
+            border-radius: 0; 
+            padding: 15px 20px; 
+            min-height: 150px; 
+            overflow-x: hidden; 
+            color: #333; 
+        }
 
-        .code-editor-container { width: 100%; box-sizing: border-box; }
-        .code-textarea { width: 100%; height: 250px; background-color: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 12px; padding: 15px; font-family: Consolas, monospace; font-size: 13px; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
+        .code-editor-container { 
+            width: calc(100% + 30px); 
+            margin-left: -15px; 
+            margin-right: -15px; 
+            box-sizing: border-box; 
+        }
+        .code-textarea { 
+            width: 100%; 
+            height: 250px; 
+            background-color: #16161e; 
+            color: #9ece6a; 
+            border: 1px solid #414868; 
+            border-left: none; 
+            border-right: none; 
+            border-radius: 0; 
+            padding: 15px 20px; 
+            font-family: Consolas, monospace; 
+            font-size: 13px; 
+            box-sizing: border-box; 
+            outline: none; 
+            resize: vertical; 
+            line-height: 1.5; 
+        }
         .code-textarea:focus { border-color: #7aa2f7; box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2); }
         .code-textarea::selection { background-color: #364A82; color: #ffffff; }
 
@@ -35,6 +71,7 @@
         .usage-text { font-size: 11px; font-weight: bold; color: #bb9af7; }
         .usage-subtext { font-size: 10px; color: #a9b1d6; }
 
+        /* 💡 3단계 스타일 고정 (변경 없음) */
         .structure-box { width: 100%; box-sizing: border-box; background-color: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 15px; min-height: 300px; max-height: 500px; overflow-y: auto; }
         
         .tree-node { margin: 4px 0; font-size: 13px; line-height: 1.4; }
@@ -47,7 +84,7 @@
         .prop-name { color: #9ece6a; font-weight: bold; width: 130px; flex-shrink: 0; }
         .prop-value { color: #c0caf5; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
         
-        /* 2단계 연동 시 빛나는 효과 */
+        /* 💡 위치 알려주기 용 반짝임 효과 */
         .highlight-match { border: 1px solid #f7768e !important; box-shadow: 0 0 8px rgba(247, 118, 142, 0.4); }
 
         .tree-children { margin-left: 15px; padding-left: 10px; border-left: 2px dashed #414868; margin-top: 4px; display: flex; flex-direction: column; }
@@ -74,8 +111,8 @@
         .fab-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background-color: #bb9af7; color: #1a1b26; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); cursor: pointer; z-index: 9998; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: scale(0); }
         .fab-btn.show { transform: scale(1); }
 
-        /* 선생님 팝업창 */
-        .explanation-popup { position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 150%); width: 90vw; max-width: 330px; background-color: #1f2335; border: 2px solid #bb9af7; border-radius: 12px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 10000; display: flex; flex-direction: column; gap: 8px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), bottom 0.3s ease; }
+        /* 💡 선생님 팝업창 (키보드 대응용 하단 부착 디자인 적용) */
+        .explanation-popup { position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 150%); width: 90vw; max-width: 330px; background-color: #1f2335; border: 2px solid #bb9af7; border-radius: 12px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 10000; display: flex; flex-direction: column; gap: 8px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .explanation-popup.show { transform: translate(-50%, 0); }
         
         .popup-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #414868; padding-bottom: 8px; }
@@ -110,10 +147,21 @@
             .explanation-popup.show { transform: translateX(0); }
         }
 
-        /* 💡 모바일 화면에 더 꽉 차도록 패딩 조절 */
+        /* 💡 모바일 환경에서 팝업이 키보드 위로 예쁘게 올라오도록 밑바닥 부착 형태 적용 */
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .app-container { gap: 10px; }
+            .explanation-popup { 
+                left: 0; 
+                bottom: 0; 
+                transform: translateY(100%); 
+                width: 100vw; 
+                max-width: none; 
+                border-radius: 16px 16px 0 0; 
+                border-left: none; 
+                border-right: none; 
+                border-bottom: none; 
+                box-sizing: border-box; 
+            }
+            .explanation-popup.show { transform: translateY(0); }
         }
 
         /* 시작 오버레이 (API 선택창) */
@@ -134,7 +182,6 @@
 </head>
 <body>
 
-    <!-- 인트로 오버레이 -->
     <div id="introOverlay" class="intro-overlay">
         <div class="intro-box">
             <h2>✨ AI 해독기 설정</h2>
@@ -152,10 +199,8 @@
         </div>
     </div>
 
-    <!-- 배경용 래퍼 -->
     <div id="appWrapper" class="app-wrapper blurred">
         <div class="app-container">
-            <!-- 네비게이션 -->
             <div class="top-nav-bar">
                 <div class="tracker-title">HTML 해독기</div>
                 <div class="slot-container">
@@ -182,7 +227,6 @@
                 </div>
             </div>
 
-            <!-- 사용량 표시 바 -->
             <div id="usageBar" class="usage-bar">
                 <span class="usage-text" id="usageCountText"></span>
                 <span class="usage-subtext">Gemini 3.7 Flash</span>
@@ -245,19 +289,8 @@
         const chatInput = document.getElementById('chatInput');
 
         // ==========================================
-        // 💡 1. 팝업 키보드 충돌 방지 (Visual Viewport API)
+        // 1. 초기화 및 API
         // ==========================================
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener("resize", () => {
-                if (explanationPopup.classList.contains('show')) {
-                    // 화면 높이에서 시각적 뷰포트 높이(키보드 제외 영역)를 뺌
-                    const offset = window.innerHeight - window.visualViewport.height;
-                    // 키보드가 올라왔으면 그 높이만큼 팝업의 bottom을 띄워줌
-                    explanationPopup.style.bottom = (offset > 0 ? offset + 10 : 20) + "px";
-                }
-            });
-        }
-
         window.onload = () => { 
             loadData(1); 
             const savedKey = localStorage.getItem('savedGeminiKey');
@@ -279,7 +312,7 @@
         function closeIntro() { introOverlay.style.display = 'none'; appWrapper.classList.remove('blurred'); }
 
         // ==========================================
-        // 2. 스마트 사용량 표시
+        // 2. 스마트 사용량 표시 
         // ==========================================
         function updateUsageDisplay() {
             if(!geminiApiKey) return;
@@ -311,8 +344,23 @@
         function getUsageCount() { return (JSON.parse(localStorage.getItem('geminiUsageData')) || {}).count || 0; }
 
         // ==========================================
-        // 💡 3. 2단계 클릭 -> 3단계 폴더 자동 펼침
+        // 3. 모바일 키보드 제어 및 2단계 ➔ 3단계 자동 연동
         // ==========================================
+        function safeSelectRange(start, end) {
+            // 강제 키보드 팝업 방지 및 화면 튕김 방지 기술
+            const currentReadOnly = codeEditor.readOnly;
+            codeEditor.readOnly = true; 
+            codeEditor.focus({ preventScroll: true }); 
+            codeEditor.setSelectionRange(start, end);
+            setTimeout(() => { codeEditor.readOnly = currentReadOnly; }, 50);
+        }
+
+        codeEditor.addEventListener('input', () => {
+            const html = codeEditor.value;
+            previewBox.innerHTML = html; analyzeCode(html); saveData();
+        });
+
+        // 💡 2단계 코드 클릭 시 3단계 구조 분석 박스 자동 오픈 (스크롤 방지)
         codeEditor.addEventListener('click', () => {
             const cursor = codeEditor.selectionStart;
             const elements = document.querySelectorAll('.tree-summary, .prop-item');
@@ -329,35 +377,19 @@
             if(match) {
                 match.classList.add('highlight-match');
                 
-                // 선택된 요소의 부모 <details> 폴더를 찾아 모두 열기 (스크롤 이동 없음)
-                let parent = match.parentElement;
-                while (parent && parent.id !== 'structureBox') {
-                    if (parent.tagName.toLowerCase() === 'details') {
-                        parent.open = true;
+                // 부모 details 자동으로 열어주기 (스크롤 이동 없음)
+                let parentNode = match.parentElement;
+                while(parentNode) {
+                    if(parentNode.tagName === 'DETAILS') {
+                        parentNode.open = true;
                     }
-                    parent = parent.parentElement;
+                    parentNode = parentNode.parentElement;
                 }
             }
         });
 
         // ==========================================
-        // 4. 강제 키보드 팝업 방지 하이라이트
-        // ==========================================
-        function safeSelectRange(start, end) {
-            const currentReadOnly = codeEditor.readOnly;
-            codeEditor.readOnly = true; // 읽기 전용 상태로 만들면 모바일 키보드가 안 올라옴!
-            codeEditor.focus({ preventScroll: true }); 
-            codeEditor.setSelectionRange(start, end);
-            setTimeout(() => { codeEditor.readOnly = currentReadOnly; }, 50);
-        }
-
-        codeEditor.addEventListener('input', () => {
-            const html = codeEditor.value;
-            previewBox.innerHTML = html; analyzeCode(html); saveData();
-        });
-
-        // ==========================================
-        // 5. 플로팅 단축키(FAB) & 팝업 제어
+        // 4. 플로팅 단축키(FAB) & 팝업 제어
         // ==========================================
         function triggerFab(key, koreanName, value) {
             currentContextKey = key; currentContextValue = value;
@@ -375,19 +407,16 @@
 
         function minimizePopup() {
             explanationPopup.classList.remove('show');
-            // 키보드가 내려가도록 인풋창 포커스 해제
-            chatInput.blur();
             fabBtn.classList.add('show');
         }
 
         function closeExplanation() {
             explanationPopup.classList.remove('show');
-            chatInput.blur();
             fabBtn.classList.remove('show');
         }
 
         // ==========================================
-        // 6. AI 채팅 로직 & 오류 다시 시도
+        // 5. AI 채팅 로직 
         // ==========================================
         function addChatMessage(sender, htmlContent) {
             const msgDiv = document.createElement('div');
@@ -481,10 +510,10 @@
         }
 
         // ==========================================
-        // 7. 한글 해독기 및 트리 렌더링 
+        // 6. 한글 해독기 및 트리 렌더링 
         // ==========================================
         const styleDictionary = { 'background': '🎨 배경', 'background-color': '🎨 배경색', 'color': '🖍️ 글자 색상', 'border': '🔲 테두리', 'border-radius': '↪️ 테두리 둥글기', 'padding': '↔️ 안쪽 여백 (완충재)', 'margin': '↔️ 바깥 여백 (거리두기)', 'width': '📏 가로 너비', 'max-width': '📏 최대 가로 너비', 'height': '↕️ 세로 높이', 'font-size': '🅰️ 글자 크기', 'font-weight': '𝐁 글자 굵기', 'text-align': '📑 글자 정렬', 'line-height': '↕️ 줄 간격', 'word-break': '✂️ 단어 줄바꿈 방식', 'text-wrap': '🎀 문단 맞추기', 'display': '📐 배치 방식 (Flex 등)', 'justify-content': '가로 정렬 방식', 'align-items': '세로 정렬 방식', 'gap': '요소 간격', 'overflow': '넘칠 때 처리', 'position': '📍 요소 위치 기준', 'transform': '🔄 모양 변형', 'z-index': '겹치는 순서', 'box-sizing': '박스 계산법', 'opacity': '👻 투명도' };
-        const explanationFallback = { 'margin': '바깥으로 남들이 다가오지 못하게 밀어내는 <b>"거리두기"</b> 구역입니다.', 'padding': '안쪽에 부서지지 않게 <b>"뽁뽁이(완충재)"</b>를 채워 넣는 것과 같습니다.', 'border-radius': '모서리를 <b>"사포로 둥글게 갈아내는"</b> 효과입니다.', 'box-sizing': '<b>border-box</b>를 쓰면 상자 크기가 망가지지 않게 여백을 안쪽으로 욱여넣습니다.', 'display': '<b>flex</b>는 레고 블록처럼 유연하게 정렬해주는 도구입니다.' };
+        const explanationFallback = { 'margin': '바깥으로 남들이 다가오지 못하게 밀어내는 <b>"거리두기"</b> 구역입니다.', 'padding': '안쪽에 부서지지 않게 <b>"뽁뽁이(완충재)"</b>를 채워 넣는 것과 같습니다.', 'border-radius': '모서리를 <b>"사포로 둥글게 갈아내는"</b> 효과입니다.', 'display': '<b>flex</b>는 레고 블록처럼 유연하게 정렬해주는 도구입니다.' };
         function getFallbackExplanation(koreanName) { return `이 속성은 상태창에서 <b>[ ${koreanName} ]</b> 역할을 합니다.<br><br>값을 바꿔보며 관찰해 보세요!`; }
 
         function tokenizeHTML(html) {
