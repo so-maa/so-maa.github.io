@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>상태창 코드 해독기</title>
+    <title>HTML 해독기</title>
     <style>
         body { background-color: #1a1b26; color: #a9b1d6; font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 20px; padding-bottom: 100px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }
         
-        .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .tracker-title { font-size: 20px; font-weight: bold; color: #c0caf5; letter-spacing: 0.5px; }
+        /* 메인 컨테이너 (인트로 화면 뜰 때 블러 처리용) */
+        .app-wrapper { width: 100%; max-width: 900px; transition: filter 0.3s ease; }
+        .app-wrapper.blurred { filter: blur(8px) brightness(0.7); pointer-events: none; user-select: none; }
+        
+        .app-container { display: flex; flex-direction: column; gap: 20px; }
+        
+        .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; flex-wrap: wrap; gap: 10px; }
+        .tracker-title { font-size: 20px; font-weight: bold; color: #c0caf5; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; }
         
         .slot-container { display: flex; gap: 6px; }
         .slot-btn { background-color: #24283b; color: #565f89; border: 1px solid #414868; border-radius: 6px; width: 32px; height: 32px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; padding: 0; }
@@ -23,6 +28,12 @@
         .code-textarea { width: 100%; height: 250px; background-color: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 12px; padding: 15px; font-family: Consolas, monospace; font-size: 13px; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
         .code-textarea:focus { border-color: #7aa2f7; box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2); }
         .code-textarea::selection { background-color: #364A82; color: #ffffff; }
+
+        /* 사용량 표시 바 */
+        .usage-bar { display: none; background-color: rgba(187, 154, 247, 0.1); border: 1px dashed #bb9af7; border-radius: 8px; padding: 12px 15px; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+        .usage-bar.active { display: flex; }
+        .usage-text { font-size: 12px; font-weight: bold; color: #bb9af7; }
+        .usage-subtext { font-size: 11px; color: #a9b1d6; }
 
         .structure-box { background-color: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 15px; min-height: 300px; max-height: 500px; overflow-y: auto; }
         
@@ -45,12 +56,7 @@
         
         .empty-msg { text-align: center; color: #565f89; font-size: 13px; margin-top: 50px; }
         .action-btn { background-color: #414868; color: #c0caf5; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        
-        @media (hover: hover) {
-            .action-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
-            .slot-btn:hover:not(.active) { background-color: #414868; color: #c0caf5; }
-        }
-        .action-btn:active { background-color: #7aa2f7; color: #1a1b26; }
+        .action-btn:hover { background-color: #7aa2f7; color: #1a1b26; }
 
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
@@ -61,211 +67,304 @@
         ::-webkit-scrollbar-thumb { background: #414868; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #7aa2f7; }
 
-        /* 선생님 팝업창 스타일 유지 */
-        .explanation-popup { position: fixed; bottom: 30px; left: 30px; width: 340px; background-color: #1f2335; border: 2px solid #7aa2f7; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 9999; display: flex; flex-direction: column; gap: 15px; transform: translateX(-150%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* 팝업창 (채팅방) */
+        .explanation-popup { position: fixed; bottom: 30px; left: 30px; width: 360px; background-color: #1f2335; border: 2px solid #bb9af7; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 9999; display: flex; flex-direction: column; gap: 10px; transform: translateX(-150%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .explanation-popup.show { transform: translateX(0); }
-        .popup-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #414868; padding-bottom: 10px; }
-        .popup-title { color: #f7768e; font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+        .popup-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #414868; padding-bottom: 8px; }
+        .popup-title { color: #bb9af7; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px; }
         .popup-close-btn { background: none; border: none; color: #a9b1d6; font-size: 18px; cursor: pointer; padding: 0; }
         .popup-close-btn:hover { color: #f7768e; }
-        .popup-prop-name { color: #9ece6a; font-weight: bold; font-size: 16px; background-color: #1a1b26; padding: 8px; border-radius: 6px; text-align: center; }
-        .popup-content { color: #c0caf5; font-size: 13.5px; line-height: 1.6; word-break: keep-all; }
+        .popup-prop-name { color: #1a1b26; font-weight: bold; font-size: 14px; background-color: #bb9af7; padding: 6px; border-radius: 6px; text-align: center; }
+        
+        .chat-log { max-height: 250px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
+        .chat-msg { font-size: 13px; line-height: 1.5; padding: 10px; border-radius: 8px; word-break: keep-all; }
+        .chat-msg.ai { background-color: #24283b; color: #c0caf5; border: 1px solid #414868; border-top-left-radius: 0; }
+        .chat-msg.user { background-color: #364A82; color: #ffffff; align-self: flex-end; border-top-right-radius: 0; }
+        
+        .chat-input-row { display: flex; gap: 5px; margin-top: 5px; }
+        .chat-input { flex: 1; background-color: #1a1b26; border: 1px solid #414868; color: #c0caf5; padding: 8px 12px; border-radius: 20px; font-size: 12px; outline: none; font-family: inherit; }
+        .chat-input:focus { border-color: #bb9af7; }
+        .chat-send-btn { background-color: #bb9af7; color: #1a1b26; border: none; border-radius: 20px; padding: 0 15px; font-weight: bold; cursor: pointer; font-size: 12px; }
 
         @media (max-width: 768px) {
             .explanation-popup { left: 50%; bottom: 20px; transform: translate(-50%, 150%); width: 90vw; max-width: 400px; }
             .explanation-popup.show { transform: translate(-50%, 0); }
         }
+
+        /* 시작 오버레이 (API 선택창) */
+        .intro-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; display: flex; justify-content: center; align-items: center; background-color: rgba(26, 27, 38, 0.4); }
+        .intro-box { background-color: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 30px; width: 90%; max-width: 380px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 15px; text-align: center; }
+        .intro-box h2 { margin: 0; font-size: 18px; color: #bb9af7; }
+        .intro-box p { margin: 0; font-size: 13px; color: #a9b1d6; line-height: 1.5; }
+        
+        .intro-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .intro-btn { padding: 12px; font-size: 14px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-no-api { background-color: #414868; color: #c0caf5; }
+        .btn-yes-api { background-color: #bb9af7; color: #1a1b26; }
+        .intro-btn:hover { filter: brightness(1.1); }
+
+        .api-input-container { display: none; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .api-input { padding: 12px; border-radius: 8px; border: 1px solid #414868; background-color: #1a1b26; color: #c0caf5; outline: none; }
+        .api-input:focus { border-color: #bb9af7; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- 네비게이션 -->
-        <div class="top-nav-bar">
-            <div class="tracker-title">HTML 해독기</div>
-            <div class="slot-container">
-                <button class="slot-btn active" id="slot-1" onclick="switchSlot(1)">1</button>
-                <button class="slot-btn" id="slot-2" onclick="switchSlot(2)">2</button>
-                <button class="slot-btn" id="slot-3" onclick="switchSlot(3)">3</button>
-                <button class="slot-btn" id="slot-4" onclick="switchSlot(4)">4</button>
-                <button class="slot-btn" id="slot-5" onclick="switchSlot(5)">5</button>
+    <!-- 인트로 오버레이 -->
+    <div id="introOverlay" class="intro-overlay">
+        <div class="intro-box">
+            <h2>✨ AI 해독기 설정</h2>
+            <p>선생님 기능을 담당할 AI를 설정해주세요.<br>(기존 데이터는 뒤에 안전하게 보존되어 있습니다!)</p>
+            
+            <div class="intro-btn-group" id="introBtnGroup">
+                <button class="intro-btn btn-no-api" onclick="selectNoApi()">API키가 없습니다. (기본사전 사용)</button>
+                <button class="intro-btn btn-yes-api" onclick="selectYesApi()">API키가 있습니다. (AI 선생님 호출)</button>
             </div>
-        </div>
 
-        <div>
-            <div class="section-title">👀 1단계: 실시간 미리보기</div>
-            <div id="previewBox" class="preview-box"></div>
-        </div>
-
-        <div>
-            <div class="section-title">
-                <span>💻 2단계: HTML 코드 편집기</span>
-                <button class="action-btn" onclick="copyCode()">코드 복사</button>
-            </div>
-            <div class="code-editor-container">
-                <textarea id="codeEditor" class="code-textarea" placeholder="여기에 상태창 코드를 붙여넣으세요!"></textarea>
-            </div>
-        </div>
-
-        <div>
-            <div class="section-title">📖 3단계: 구조 분석 (코드를 짚어주고 원리를 친절하게 설명해줍니다!)</div>
-            <div id="structureBox" class="structure-box">
-                <div class="empty-msg">코드를 입력하면 여기에 분석 결과가 나타납니다.</div>
+            <div class="api-input-container" id="apiInputContainer">
+                <input type="text" id="introApiInput" class="api-input" placeholder="AIzaSy... (API 키를 붙여넣으세요)">
+                <button class="intro-btn btn-yes-api" onclick="submitApiKey()">입력 완료 및 시작</button>
             </div>
         </div>
     </div>
 
-    <!-- 💡 선생님 설명 팝업창 -->
+    <!-- 배경용 래퍼 -->
+    <div id="appWrapper" class="app-wrapper blurred">
+        <div class="app-container">
+            <!-- 네비게이션 -->
+            <div class="top-nav-bar">
+                <div class="tracker-title">HTML 해독기</div>
+                <div class="slot-container">
+                    <button class="slot-btn active" id="slot-1" onclick="switchSlot(1)">1</button>
+                    <button class="slot-btn" id="slot-2" onclick="switchSlot(2)">2</button>
+                    <button class="slot-btn" id="slot-3" onclick="switchSlot(3)">3</button>
+                    <button class="slot-btn" id="slot-4" onclick="switchSlot(4)">4</button>
+                    <button class="slot-btn" id="slot-5" onclick="switchSlot(5)">5</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">👀 1단계: 실시간 미리보기</div>
+                <div id="previewBox" class="preview-box"></div>
+            </div>
+
+            <div>
+                <div class="section-title">
+                    <span>💻 2단계: HTML 코드 편집기</span>
+                    <button class="action-btn" onclick="copyCode()">코드 복사</button>
+                </div>
+                <div class="code-editor-container">
+                    <textarea id="codeEditor" class="code-textarea" placeholder="여기에 상태창 코드를 붙여넣으세요!"></textarea>
+                </div>
+            </div>
+
+            <!-- 사용량 표시 바 -->
+            <div id="usageBar" class="usage-bar">
+                <span class="usage-text" id="usageCountText">오늘 AI 질문 횟수: 0회 / 1,500회</span>
+                <!-- 💡 3.7 Flash 모델로 명칭 변경 반영 -->
+                <span class="usage-subtext">초고속 Gemini 3.7 Flash 가동 중</span>
+            </div>
+
+            <div>
+                <div class="section-title">📖 3단계: 구조 분석 (항목을 눌러 AI 선생님을 호출하세요!)</div>
+                <div id="structureBox" class="structure-box">
+                    <div class="empty-msg">코드를 입력하면 여기에 분석 결과가 나타납니다.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 선생님 대화창 -->
     <div id="explanationPopup" class="explanation-popup">
         <div class="popup-header">
-            <span class="popup-title">💡 1타 강사의 찰떡 비유 설명!</span>
+            <span class="popup-title">✨ 1타 강사 AI 코딩 상담소</span>
             <button class="popup-close-btn" onclick="closeExplanation()">✕</button>
         </div>
         <div class="popup-prop-name" id="popupPropName">속성 이름</div>
-        <div class="popup-content" id="popupContent">설명이 여기에 나타납니다.</div>
+        
+        <div id="chatLog" class="chat-log"></div>
+
+        <div class="chat-input-row" id="chatInputRow" style="display: none;">
+            <input type="text" id="chatInput" class="chat-input" placeholder="궁금한 점을 추가로 물어보세요!" onkeypress="if(event.key==='Enter') sendChatMsg()">
+            <button class="chat-send-btn" onclick="sendChatMsg()">전송</button>
+        </div>
     </div>
 
     <script>
+        // 전역 변수 설정
+        let geminiApiKey = null;
+        // 💡 가장 최신/가성비 모델인 3.7 Flash로 설정 반영!
+        const MODEL_NAME = "gemini-3.7-flash"; 
+        let currentSlot = 1;
+        let chatHistory = []; 
+
+        const appWrapper = document.getElementById('appWrapper');
+        const introOverlay = document.getElementById('introOverlay');
+        const usageBar = document.getElementById('usageBar');
+        const usageCountText = document.getElementById('usageCountText');
         const previewBox = document.getElementById('previewBox');
         const codeEditor = document.getElementById('codeEditor');
         const structureBox = document.getElementById('structureBox');
-        const explanationPopup = document.getElementById('explanationPopup');
         
-        let currentSlot = 1;
+        const explanationPopup = document.getElementById('explanationPopup');
+        const chatLog = document.getElementById('chatLog');
+        const chatInputRow = document.getElementById('chatInputRow');
+        const chatInput = document.getElementById('chatInput');
 
-        // 💡 1. 거의 모든 CSS 속성을 커버하는 초대형 사전
-        const styleDictionary = {
-            'background': '🎨 배경 (색깔/그라데이션 통합)',
-            'background-color': '🎨 배경색',
-            'background-image': '🖼️ 배경 이미지/그라데이션',
-            'background-size': '📏 배경 크기',
-            'background-position': '📍 배경 위치',
-            'background-clip': '✂️ 배경 자르기 영역',
-            'color': '🖍️ 글자 색상',
-            'border': '🔲 테두리 (두께/종류/색상)',
-            'border-top': '🔼 윗면 테두리',
-            'border-bottom': '🔽 아랫면 테두리',
-            'border-left': '◀️ 좌측 테두리',
-            'border-right': '▶️ 우측 테두리',
-            'border-radius': '↪️ 테두리 둥글기 (라운드)',
-            'padding': '↔️ 상자 안쪽 여백 (완충재)',
-            'padding-top': '위쪽 안쪽 여백',
-            'padding-bottom': '아래쪽 안쪽 여백',
-            'padding-left': '왼쪽 안쪽 여백',
-            'padding-right': '오른쪽 안쪽 여백',
-            'margin': '↔️ 상자 바깥 여백 (거리두기)',
-            'margin-top': '위쪽 바깥 여백',
-            'margin-bottom': '아래쪽 바깥 여백',
-            'margin-left': '왼쪽 바깥 여백',
-            'margin-right': '오른쪽 바깥 여백',
-            'width': '📏 가로 너비',
-            'max-width': '📏 최대 가로 너비 한계선',
-            'min-width': '📏 최소 가로 너비 한계선',
-            'height': '↕️ 세로 높이',
-            'max-height': '↕️ 최대 세로 높이',
-            'font-size': '🅰️ 글자 크기',
-            'font-weight': '𝐁 글자 굵기',
-            'font-family': '🔤 폰트(글꼴)',
-            'font-style': '🔠 글자 스타일(기울임 등)',
-            'text-align': '📑 글자 정렬 (좌/우/중앙)',
-            'line-height': '↕️ 줄 간격',
-            'letter-spacing': '↔️ 글자 사이 간격(자간)',
-            'word-break': '✂️ 단어 줄바꿈 방식',
-            'text-wrap': '🎀 문단 예쁘게 맞추기',
-            'white-space': '빈칸 및 줄바꿈 처리',
-            'text-decoration': '밑줄/취소선',
-            'box-shadow': '👤 박스 그림자 효과',
-            'text-shadow': '👤 글자 그림자 효과',
-            'opacity': '👻 투명도 (0 ~ 1)',
-            'display': '📐 요소 배치 방식 (Flex, Grid 등)',
-            'flex-direction': '가로/세로 나열 방향',
-            'justify-content': '가로 정렬 방식',
-            'align-items': '세로 정렬 방식',
-            'gap': '요소들 사이의 틈(간격)',
-            'overflow': '상자 밖으로 넘칠 때 처리',
-            'overflow-x': '가로로 넘칠 때 처리',
-            'overflow-y': '세로로 넘칠 때 처리',
-            'position': '📍 요소 위치 지정 기준',
-            'top': '위에서부터 위치',
-            'bottom': '아래서부터 위치',
-            'left': '왼쪽에서부터 위치',
-            'right': '오른쪽에서부터 위치',
-            'transform': '🔄 모양 변형 (이동/회전/확대)',
-            'z-index': '햄버거처럼 겹치는 순서',
-            'box-sizing': '박스 크기 계산법',
-            'cursor': '🖱️ 마우스 커서 모양',
-            'aspect-ratio': '가로세로 비율',
-            'isolation': '독립된 투명도 레이어',
-            '-webkit-mask-image': '🎭 마스크 (가리기 효과)',
-            '-webkit-background-clip': '✂️ 배경을 글자 모양으로 자르기',
-            '-webkit-text-fill-color': '투명한 글자 색상',
-            '-webkit-font-smoothing': '폰트 가장자리 부드럽게',
-            '-webkit-overflow-scrolling': '📱 아이폰 터치 스크롤 관성',
-            'scroll-snap-type': '🧲 스크롤 자석 효과 (스냅)',
-            'scroll-snap-align': '🧲 스크롤 자석 붙는 위치',
-            'backdrop-filter': '🪟 배경 유리창 블러 효과',
-            'filter': '✨ 이미지 필터 (흑백, 블러 등)',
-            'object-fit': '이미지 찌그러짐 방지 비율'
-        };
-
-        // 💡 2. 초보자를 위한 '아!' 소리가 나오는 찰떡 비유 백과사전
-        const explanationDictionary = {
-            'margin': '내 상자의 울타리 바깥으로 남들이 다가오지 못하게 밀어내는 <b>"거리두기"</b> 구역입니다.<br><br>ex) <code>margin: 10px auto;</code>라고 쓰면 위아래로 10px씩 거리를 두고, 좌우는 자동으로 중앙에 딱 맞춥니다.',
-            'padding': '상자 안쪽에 부서지지 않게 <b>"뽁뽁이(완충재)"</b>를 채워 넣는 것과 같습니다.<br><br>글자나 이미지가 상자 벽에 바짝 붙어서 답답해 보일 때 padding을 높여주면 숨통이 트입니다.',
-            'border-radius': '각진 네모 상자의 모서리를 <b>"사포로 둥글게 갈아내는"</b> 효과입니다.<br><br>숫자를 크게 할수록 동글동글해지며, <code>50%</code>를 넣으면 완벽한 원이나 타원이 됩니다.',
-            'box-sizing': '<b>border-box</b>를 사용하면 상자의 크기를 먼저 픽스해두고, 그 안에서 테두리 두께와 뽁뽁이(padding)를 욱여넣습니다.<br><br>여백을 아무리 늘려도 상자가 뚱뚱해지면서 레이아웃이 박살나는 대참사를 막아주는 필수 공식입니다.',
-            'word-break': '글자가 박스 끝에 닿았을 때 어떻게 줄을 바꿀까요?<br><b>keep-all</b>을 쓰면 "안녕하세요"라는 단어가 "안녕하/세요"로 어색하게 쪼개지지 않고, 단어 단위로 예쁘게 줄바꿈이 일어납니다.',
-            'text-wrap': '<b>pretty</b>를 사용하면 문단 마지막 줄에 단어 하나만 덜렁 외롭게 남지 않도록, 컴퓨터가 알아서 가장 예쁜 비율로 줄바꿈 폭을 조정해줍니다.',
-            'position': '요소를 공중에 띄우는 마법입니다.<br>- <b>absolute</b>: 공중에 띄워서 원하는 위치에 압정으로 콱 박아 고정합니다.<br>- <b>relative</b>: 원래 자기 자리를 지키면서도, 공중에 뜬(absolute) 자식 요소들이 도망가지 못하게 막는 "울타리" 역할을 해줍니다.',
-            'display': '<b>flex</b>는 상자 안의 내용물들을 레고 블록처럼 가로로 줄을 세우거나 세로로 차곡차곡 정렬해주는 <b>마법의 지휘관</b>입니다.<br><br>상태창에서 아이템들을 가로로 예쁘게 배열할 때 무조건 쓰입니다.',
-            'transform': '도형을 밀거나, 돌리거나, 찌그러뜨립니다.<br>특히 <b>translateY(-50%)</b>는 상자를 자기 키의 반만큼 훅 끌어올려서, 완벽한 "수직 중앙 정렬"을 맞출 때 쓰는 개발자들의 꿀팁입니다.',
-            'overflow': '상자보다 내용물이 커서 밖으로 삐져나갈 때 어떻게 할까요?<br><b>hidden</b>을 쓰면 삐져나온 부분에 투명 망토를 씌워서 가위로 자른 듯 깔끔하게 숨겨줍니다. 동그란 프로필 사진 만들 때 필수!',
-            'z-index': '햄버거의 재료들이 겹쳤을 때 누가 맨 위로(빵 쪽으로) 올라올지 정하는 <b>전투력 수치</b>입니다.<br>숫자가 높을수록 화면의 가장 앞쪽(사용자 쪽)으로 튀어나와 다른 요소들을 덮어버립니다.',
-            'gap': 'display: flex 상태일 때, 안에 있는 블록들 사이의 <b>간격(틈)</b>을 정해줍니다.<br>margin을 복잡하게 계산하지 않아도 요소들 사이에 깔끔하게 빈 공간을 뚫어줍니다.',
-            'opacity': '요소가 얼마나 투명한지(유령 같은지) 정합니다.<br><b>0</b>은 완전 투명(안 보임), <b>1</b>은 완전 불투명입니다. <b>0.5</b>처럼 소수점을 쓰면 반투명한 예쁜 유리창 느낌이 납니다.',
-            '-webkit-overflow-scrolling': '<b>touch</b>를 넣으면 모바일(아이폰)에서 스크롤을 튕겼을 때, 얼음판 위를 미끄러지듯 <b>부드럽고 관성 있게 쭈루룩~</b> 넘어가게 해주는 터치 마법입니다.',
-            'scroll-snap-type': '스크롤을 내릴 때 화면이 어중간하게 멈추지 않고, 다음 항목에 <b>자석처럼 착! 하고 달라붙게</b> 만들어 줍니다. 유튜브 릴스나 쇼츠 넘길 때의 그 쫀득한 느낌입니다.',
-            'backdrop-filter': '요소 <b>뒤에 있는 배경</b>을 욕실의 반투명 유리창이나 안개 낀 것처럼 뽀얗게(블러) 만들어주는 초고급 효과입니다. (주로 rgba 투명 배경과 세트로 쓰입니다.)',
-            'background': '배경색뿐만 아니라 <b>그라데이션(linear-gradient)</b>을 넣을 때 자주 쓰입니다.<br>ex) 위에서 아래로 빨강에서 파랑으로 스르륵 변하게 칠해주세요! 라는 명령을 내릴 수 있습니다.',
-            '-webkit-background-clip': '배경색을 네모 상자에 칠하는 게 아니라, <b>글자 모양에 맞춰서 오려냅니다(text).</b><br>글자에 예쁜 무지개 그라데이션 색상을 입힐 때 쓰는 특수 기술입니다.',
-            'box-shadow': '상자 뒤에 은은한 <b>그림자</b>를 만들어줍니다.<br>평면적인 디자인이 갑자기 공중에 살짝 떠 있는 것처럼 입체적이고 고급스러워 보입니다.',
-            'text-shadow': '글자 뒤에 그림자를 넣거나, 그림자를 빽빽하게 넣어서 <b>테두리(외곽선)가 있는 글자</b>를 만들 때 사용하는 기술입니다.'
-        };
-
-        // 💡 3. 기본 설명 생성기
-        function getExplanation(key, koreanName) {
-            if (explanationDictionary[key]) {
-                return explanationDictionary[key];
+        // ==========================================
+        // 1. 인트로 오버레이 및 API 키 로직
+        // ==========================================
+        window.onload = () => { 
+            loadData(1); 
+            const savedKey = sessionStorage.getItem('tempGeminiKey') || localStorage.getItem('savedGeminiKey');
+            if(savedKey) {
+                document.getElementById('introApiInput').value = savedKey;
             }
-            // 사전에 명시된 긴 비유가 없으면, 일반적이고 친절한 설명 생성
-            return `이 속성은 상태창에서 <b>[ ${koreanName} ]</b> 역할을 합니다.<br><br>디자인을 더 예쁘고 섬세하게 꾸며주는 중요한 요소입니다. 편집기에서 숫자를 키우거나 색상 코드를 바꿔보면서 디자인이 어떻게 변하는지 실시간으로 관찰해 보세요!`;
         }
 
-        // 로컬스토리지 및 슬롯
-        function switchSlot(num) {
-            if(currentSlot === num) return;
-            saveData();
-            currentSlot = num;
-            document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('slot-' + num).classList.add('active');
-            loadData(num);
-            closeExplanation();
+        function selectNoApi() {
+            geminiApiKey = null;
+            closeIntro();
         }
 
-        function saveData() { localStorage.setItem('htmlCodeSlot_' + currentSlot, codeEditor.value); }
-
-        function loadData(num) {
-            const savedCode = localStorage.getItem('htmlCodeSlot_' + num) || '';
-            codeEditor.value = savedCode;
-            codeEditor.dispatchEvent(new Event('input')); 
+        function selectYesApi() {
+            document.getElementById('introBtnGroup').style.display = 'none';
+            document.getElementById('apiInputContainer').style.display = 'flex';
         }
 
-        codeEditor.addEventListener('input', () => {
-            const html = codeEditor.value;
-            previewBox.innerHTML = html;
-            analyzeCode(html);
-            saveData();
-        });
+        function submitApiKey() {
+            const key = document.getElementById('introApiInput').value.trim();
+            if(key) {
+                geminiApiKey = key;
+                localStorage.setItem('savedGeminiKey', key);
+                updateUsageDisplay();
+                closeIntro();
+            } else {
+                alert('API 키를 입력해주세요!');
+            }
+        }
+
+        function closeIntro() {
+            introOverlay.style.display = 'none';
+            appWrapper.classList.remove('blurred');
+        }
+
+        // ==========================================
+        // 2. 로컬 스토리지 내장형 카운터 로직
+        // ==========================================
+        function updateUsageDisplay() {
+            if(!geminiApiKey) return;
+            usageBar.classList.add('active');
+            
+            const today = new Date().toDateString();
+            let usageData = JSON.parse(localStorage.getItem('geminiUsageData')) || { date: today, count: 0 };
+            
+            if (usageData.date !== today) {
+                usageData = { date: today, count: 0 };
+                localStorage.setItem('geminiUsageData', JSON.stringify(usageData));
+            }
+            usageCountText.textContent = `오늘 AI 질문 횟수: ${usageData.count}회 / 1,500회 (무료 한도 넉넉해요!)`;
+        }
+
+        function incrementUsage() {
+            const today = new Date().toDateString();
+            let usageData = JSON.parse(localStorage.getItem('geminiUsageData')) || { date: today, count: 0 };
+            usageData.count++;
+            localStorage.setItem('geminiUsageData', JSON.stringify(usageData));
+            updateUsageDisplay();
+        }
+
+        // ==========================================
+        // 3. AI 대화 (채팅) 로직
+        // ==========================================
+        function addChatMessage(sender, htmlContent) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${sender}`;
+            msgDiv.innerHTML = htmlContent;
+            chatLog.appendChild(msgDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        async function fetchAIResponse(userMessage, isInitial = false) {
+            if (!geminiApiKey) return null;
+            
+            let contents = [];
+            if (isInitial) {
+                contents.push({
+                    role: 'user',
+                    parts: [{ text: `당신은 HTML/CSS를 전혀 모르는 왕초보에게 웹 코딩을 가르쳐주는 '1타 강사'입니다.
+사용자가 상태창 코드를 수정하다가 CSS 속성에 대해 질문했습니다. 다음 사항을 설명해주세요:
+${userMessage}
+조건: '뽁뽁이', '자석' 등 초보자가 100% 공감할 일상적인 비유를 반드시 사용하세요. 3~4문장으로 쉽고 친절하게 대답하세요.` }]
+                });
+            } else {
+                chatHistory.forEach(ch => {
+                    contents.push({ role: ch.role, parts: [{ text: ch.text }] });
+                });
+                contents.push({ role: 'user', parts: [{ text: userMessage }] });
+            }
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${geminiApiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: contents })
+                });
+                const data = await response.json();
+                const aiText = data.candidates[0].content.parts[0].text;
+                
+                if(!isInitial) {
+                    chatHistory.push({ role: 'user', text: userMessage });
+                    chatHistory.push({ role: 'model', text: aiText });
+                } else {
+                    chatHistory = [
+                        { role: 'user', text: userMessage },
+                        { role: 'model', text: aiText }
+                    ];
+                }
+                
+                incrementUsage(); 
+                return aiText;
+            } catch (e) {
+                console.error("AI API 에러:", e);
+                return null;
+            }
+        }
+
+        async function sendChatMsg() {
+            const msg = chatInput.value.trim();
+            if(!msg) return;
+            
+            chatInput.value = '';
+            addChatMessage('user', msg);
+            
+            const loadingId = 'loading_' + Date.now();
+            addChatMessage('ai', `<span id="${loadingId}">답변을 작성하고 있어요... 💭</span>`);
+            
+            const aiResponse = await fetchAIResponse(msg, false);
+            const loadingEl = document.getElementById(loadingId);
+            
+            if(aiResponse) {
+                loadingEl.innerHTML = aiResponse.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:#bb9af7;">$1</b>');
+            } else {
+                loadingEl.innerHTML = '<span style="color:#f7768e;">통신에 실패했어요. 다시 시도해주세요.</span>';
+            }
+        }
+
+        // ==========================================
+        // 4. 한글 해독기 사전 및 트리 렌더링 로직 
+        // ==========================================
+        const styleDictionary = {
+            'background': '🎨 배경 (색깔/그라데이션)', 'background-color': '🎨 배경색', 'color': '🖍️ 글자 색상', 'border': '🔲 테두리 (두께/색상)', 'border-radius': '↪️ 테두리 둥글기 (라운드)', 'padding': '↔️ 상자 안쪽 여백 (완충재)', 'margin': '↔️ 상자 바깥 여백 (거리두기)', 'width': '📏 가로 너비', 'max-width': '📏 최대 가로 너비', 'height': '↕️ 세로 높이', 'font-size': '🅰️ 글자 크기', 'font-weight': '𝐁 글자 굵기', 'text-align': '📑 글자 정렬', 'line-height': '↕️ 줄 간격', 'word-break': '✂️ 단어 줄바꿈 방식', 'text-wrap': '🎀 문단 맞추기', 'display': '📐 요소 배치 (Flex 등)', 'justify-content': '가로 정렬 방식', 'align-items': '세로 정렬 방식', 'gap': '요소 사이의 틈', 'overflow': '상자 밖으로 넘칠 때', 'position': '📍 요소 위치 기준', 'transform': '🔄 모양 변형 (이동/회전)', 'z-index': '겹치는 순서', 'box-sizing': '박스 크기 계산법', 'opacity': '👻 투명도'
+        };
+
+        const explanationFallback = {
+            'margin': '내 상자의 울타리 바깥으로 남들이 다가오지 못하게 밀어내는 <b>"거리두기"</b> 구역입니다.', 'padding': '상자 안쪽에 부서지지 않게 <b>"뽁뽁이(완충재)"</b>를 채워 넣는 것과 같습니다.', 'border-radius': '각진 네모 상자의 모서리를 <b>"사포로 둥글게 갈아내는"</b> 효과입니다.', 'box-sizing': '<b>border-box</b>를 쓰면 상자 크기가 망가지지 않게 여백을 안쪽으로 욱여넣습니다.', 'display': '<b>flex</b>는 상자 안의 내용물들을 레고 블록처럼 유연하게 정렬해주는 마법의 도구입니다.'
+        };
+
+        function getFallbackExplanation(koreanName) {
+            return `이 속성은 상태창에서 <b>[ ${koreanName} ]</b> 역할을 합니다.<br><br>숫자를 키우거나 색상 코드를 바꿔보면서 디자인이 어떻게 변하는지 관찰해 보세요!`;
+        }
 
         function tokenizeHTML(html) {
             const regex = /<(\/?)([a-zA-Z0-9\-]+)([^>]*?)>|([^<]+)/g;
@@ -275,12 +374,7 @@
                 const isClose = match[1] === '/';
                 const tagName = match[2] ? match[2].toLowerCase() : null;
                 if (!isTag && (match[4] || '').trim() === '') continue;
-
-                tokens.push({
-                    isTag: isTag, isClose: isClose, name: tagName, attrs: match[3] || '',
-                    text: match[0], rawContent: (match[4] || '').trim(),
-                    start: match.index, end: regex.lastIndex
-                });
+                tokens.push({ isTag, isClose, name: tagName, attrs: match[3] || '', text: match[0], rawContent: (match[4] || '').trim(), start: match.index, end: regex.lastIndex });
             }
             return tokens;
         }
@@ -299,9 +393,7 @@
                 } 
                 else if (t.isTag && t.isClose) {
                     for (let i = stack.length - 1; i >= 1; i--) {
-                        if (stack[i].name === t.name) {
-                            stack[i].end = t.end; stack.length = i; break;
-                        }
+                        if (stack[i].name === t.name) { stack[i].end = t.end; stack.length = i; break; }
                     }
                 } 
                 else if (!t.isTag) {
@@ -311,19 +403,12 @@
             return root.children;
         }
 
-        function translateTag(node) {
-            const n = node.name;
-            if (n === 'div') return { badge: 'box', text: '📦 구역 (도형/상자)' };
-            if (n === 'span') return { badge: 'text', text: '🏷️ 짧은 텍스트' };
-            if (n === 'details') return { badge: 'special', text: '📂 접기/펼치기 전체 틀' };
+        function translateTag(n, text) {
+            if (n === 'div') return { badge: 'box', text: '📦 구역 상자' };
+            if (n === 'span') return { badge: 'text', text: '🏷️ 텍스트 꾸밈' };
+            if (n === 'details') return { badge: 'special', text: '📂 펼치기 틀' };
             if (n === 'summary') return { badge: 'special', text: '▶ 펼치기 제목' };
-            if (n === 'br') return { badge: 'text', text: '↵ 줄바꿈' };
-            if (n === 'hr') return { badge: 'box', text: '➖ 가로선' };
-            if (n === 'strong' || n === 'b') return { badge: 'text', text: '𝗕 굵은 글씨' };
-            if (n === '#text') {
-                const previewText = node.text.length > 15 ? node.text.substring(0, 15) + '...' : node.text;
-                return { badge: '', text: `📝 텍스트: "${previewText}"` };
-            }
+            if (n === '#text') return { badge: '', text: `📝 텍스트: "${text.length > 15 ? text.substring(0,15)+'...' : text}"` };
             return { badge: '', text: `<${n}> 태그` };
         }
 
@@ -331,19 +416,12 @@
             if (!attrString) return [];
             const styleMatch = attrString.match(/style\s*=\s*(["'])(.*?)\1/i);
             if (!styleMatch) return [];
-            
             const properties = [];
-            const rules = styleMatch[2].split(';').filter(rule => rule.trim() !== '');
-            
-            rules.forEach(rule => {
+            styleMatch[2].split(';').filter(r => r.trim() !== '').forEach(rule => {
                 const parts = rule.split(':');
                 if (parts.length >= 2) {
                     const key = parts[0].trim().toLowerCase();
-                    const value = parts.slice(1).join(':').trim(); 
-                    properties.push({
-                        key: key, value: value,
-                        koreanName: styleDictionary[key] || key 
-                    });
+                    properties.push({ key: key, value: parts.slice(1).join(':').trim(), koreanName: styleDictionary[key] || key });
                 }
             });
             return properties;
@@ -352,36 +430,28 @@
         function renderTreeUI(nodes) {
             let html = '';
             for (let node of nodes) {
-                const info = translateTag(node);
+                const info = translateTag(node.name, node.text);
                 const styles = parseStyles(node.attrs);
                 
                 html += `<div class="tree-node">`;
-                
                 if (node.name === '#text' || node.name === 'br') {
-                    html += `<div class="tree-summary" onclick="highlightFullTag(event, ${node.start}, ${node.end}, '${node.name}', '${info.text}')">`;
-                    html += `${info.text}</div>`;
-                } 
-                else {
-                    html += `<details>`;
-                    html += `<summary class="tree-summary" onclick="highlightFullTag(event, ${node.start}, ${node.end}, '${node.name}', '${info.text}')">`;
-                    if (info.badge) html += `<span class="badge ${info.badge}">${info.badge === 'box' ? 'BOX' : info.badge === 'text' ? 'TXT' : 'SPL'}</span>`;
-                    html += `${info.text} (속성 ${styles.length}개)`;
-                    html += `</summary>`;
+                    html += `<div class="tree-summary" onclick="highlightFullTag(event, ${node.start}, ${node.end}, '${node.name}', '${info.text}')">${info.text}</div>`;
+                } else {
+                    html += `<details><summary class="tree-summary" onclick="highlightFullTag(event, ${node.start}, ${node.end}, '${node.name}', '${info.text}')">`;
+                    if (info.badge) html += `<span class="badge ${info.badge}">${info.badge.toUpperCase()}</span>`;
+                    html += `${info.text} (설정 ${styles.length}개)</summary>`;
 
                     if (styles.length > 0) {
                         html += `<div class="prop-list">`;
                         styles.forEach(prop => {
-                            html += `<div class="prop-item" onclick="highlightSpecificStyle(event, ${node.start}, ${node.openEnd}, '${prop.key}', '${prop.koreanName}')">`;
-                            html += `<span class="prop-name">${prop.koreanName}</span>`;
-                            html += `<span class="prop-value">${prop.value}</span>`;
-                            html += `</div>`;
+                            const safeValue = prop.value.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                            html += `<div class="prop-item" onclick="highlightSpecificStyle(event, ${node.start}, ${node.openEnd}, '${prop.key}', '${prop.koreanName}', '${safeValue}')">
+                                <span class="prop-name">${prop.koreanName}</span><span class="prop-value">${prop.value}</span>
+                            </div>`;
                         });
                         html += `</div>`;
                     }
-
-                    if (node.children && node.children.length > 0) {
-                        html += `<div class="tree-children">${renderTreeUI(node.children)}</div>`;
-                    }
+                    if (node.children && node.children.length > 0) html += `<div class="tree-children">${renderTreeUI(node.children)}</div>`;
                     html += `</details>`;
                 }
                 html += `</div>`;
@@ -389,78 +459,84 @@
             return html;
         }
 
-        function analyzeCode(html) {
-            if (!html.trim()) {
-                structureBox.innerHTML = '<div class="empty-msg">코드를 입력하면 여기에 분석 결과가 나타납니다.</div>';
-                return;
-            }
-            const tokens = tokenizeHTML(html);
-            const tree = buildTree(tokens, html.length);
-            structureBox.innerHTML = renderTreeUI(tree);
-        }
-
-        function showExplanation(key, koreanName) {
-            const propNameEl = document.getElementById('popupPropName');
-            const contentEl = document.getElementById('popupContent');
-            
-            propNameEl.textContent = koreanName;
-            contentEl.innerHTML = getExplanation(key, koreanName);
-            
+        // ==========================================
+        // 5. 에디터 상호작용 및 팝업 
+        // ==========================================
+        async function openExplanationPopup(key, koreanName, value) {
+            chatLog.innerHTML = ''; 
+            document.getElementById('popupPropName').textContent = koreanName;
             explanationPopup.classList.add('show');
+            chatInputRow.style.display = 'none';
+
+            if(geminiApiKey) {
+                addChatMessage('ai', '<span id="initLoading">코드를 분석하고 비유를 떠올리고 있어요... 💭</span>');
+                
+                const questionText = `현재 '${key}: ${value};' 값이 쓰였어. 이게 무슨 뜻이고 화면에서 어떻게 동작하는지 일상적인 비유로 설명해줘.`;
+                const aiResponse = await fetchAIResponse(questionText, true);
+                
+                document.getElementById('initLoading').parentElement.remove();
+                if(aiResponse) {
+                    addChatMessage('ai', aiResponse.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:#bb9af7;">$1</b>'));
+                    chatInputRow.style.display = 'flex'; 
+                } else {
+                    addChatMessage('ai', getFallbackExplanation(koreanName) + '<br><br><span style="font-size:11px; color:#f7768e;">(AI 응답 에러)</span>');
+                }
+            } else {
+                addChatMessage('ai', explanationFallback[key] || getFallbackExplanation(koreanName));
+            }
         }
 
-        function closeExplanation() {
-            explanationPopup.classList.remove('show');
-        }
+        function closeExplanation() { explanationPopup.classList.remove('show'); }
 
-        // 💡 4. 코드창 강제 스크롤링 제거 (focus 시 preventScroll 사용)
         function highlightFullTag(event, start, end, tagName, tagKoreanName) {
             if(event) event.stopPropagation();
-            
-            // 포커스를 주되 화면이 튕기듯 올라가는 현상 방지!
             codeEditor.focus({ preventScroll: true });
             codeEditor.setSelectionRange(start, end);
-            
-            if(tagName && tagName !== '#text') {
-                const explainKey = (tagName === 'div' || tagName === 'details' || tagName === 'span') ? tagName : '기본 태그';
-                showExplanation(explainKey, tagKoreanName);
-            }
+            if(tagName && tagName !== '#text') openExplanationPopup(tagName, tagKoreanName, '태그 전체');
         }
 
-        function highlightSpecificStyle(event, nodeStart, nodeOpenEnd, cssKey, cssKoreanName) {
+        function highlightSpecificStyle(event, nodeStart, nodeOpenEnd, cssKey, cssKoreanName, value) {
             event.stopPropagation(); 
-            
             const code = codeEditor.value;
             const tagCode = code.substring(nodeStart, nodeOpenEnd);
-            
-            // 정확한 키워드 매칭 정규식
             const regex = new RegExp(`(?<![\\w-])${cssKey.replace(/-/g, '\\-')}\\s*:\\s*[^;"]+`, 'i');
             const match = tagCode.match(regex);
             
             if (match) {
                 const exactStart = nodeStart + match.index;
-                const exactEnd = exactStart + match[0].length;
-                
-                // 화면 튕김 현상 완벽 방지
                 codeEditor.focus({ preventScroll: true });
-                codeEditor.setSelectionRange(exactStart, exactEnd);
+                codeEditor.setSelectionRange(exactStart, exactStart + match[0].length);
             } else {
-                highlightFullTag(null, nodeStart, nodeOpenEnd);
+                codeEditor.focus({ preventScroll: true });
+                codeEditor.setSelectionRange(nodeStart, nodeOpenEnd);
             }
-            
-            showExplanation(cssKey, cssKoreanName);
+            openExplanationPopup(cssKey, cssKoreanName, value);
+        }
+
+        function analyzeCode(html) {
+            if (!html.trim()) { structureBox.innerHTML = '<div class="empty-msg">코드를 입력하면 여기에 분석 결과가 나타납니다.</div>'; return; }
+            structureBox.innerHTML = renderTreeUI(buildTree(tokenizeHTML(html), html.length));
+        }
+
+        function switchSlot(num) {
+            if(currentSlot === num) return;
+            localStorage.setItem('htmlCodeSlot_' + currentSlot, codeEditor.value);
+            currentSlot = num;
+            document.querySelectorAll('.slot-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('slot-' + num).classList.add('active');
+            loadData(num);
+            closeExplanation();
+        }
+
+        function loadData(num) {
+            codeEditor.value = localStorage.getItem('htmlCodeSlot_' + num) || '';
+            codeEditor.dispatchEvent(new Event('input')); 
         }
 
         function copyCode() {
-            const code = codeEditor.value;
-            if(!code) return alert('복사할 코드가 없습니다.');
-            navigator.clipboard.writeText(code).then(() => {
-                alert('코드 복사가 완료되었습니다!');
-            });
+            if(!codeEditor.value) return alert('복사할 코드가 없습니다.');
+            navigator.clipboard.writeText(codeEditor.value).then(() => alert('복사 완료!'));
         }
-
-        window.onload = () => { loadData(1); }
     </script>
 </body>
 </html>
-
