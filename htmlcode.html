@@ -80,8 +80,7 @@
         
         .ai-req-btn { background: transparent; border: 1px solid #bb9af7; color: #bb9af7; width: 100%; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 5px; }
         .chat-input-row { display: flex; gap: 5px; margin-top: 5px; }
-        .chat-input { flex: 1; background: #1a1b26; border: 1px solid #414868; color: #c0caf5; padding: 8px 12px; border-radius: 20px; font-size: 12px; outline: none; font-family: inherit; }
-        .chat-input:focus { border-color: #bb9af7; }
+        .chat-input { flex: 1; background: #1a1b26; border: 1px solid #414868; color: #c0caf5; padding: 8px 12px; border-radius: 20px; font-size: 12px; outline: none; }
         .chat-send-btn { background: #bb9af7; color: #1a1b26; border: none; border-radius: 20px; padding: 0 12px; font-weight: bold; cursor: pointer; font-size: 12px; }
 
         .intro-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; display: flex; justify-content: center; align-items: center; background: rgba(26, 27, 38, 0.4); }
@@ -262,8 +261,8 @@
 
         const reqAi = async () => {
             UI.log.lastChild.remove();
-            const id = 'l_'+Date.now(); addMsg('ai', `<span id="${id}">비유를 떠올리고 있어요...💭</span>`);
-            const q = `현재 '${currKey}: ${currVal};' 설정이 사용됨. 뜻과 동작 원리를 '뽁뽁이', '자석' 등 초보자가 100% 공감할 비유를 써서 3문장으로 쉽고 친절히 답해줘.`;
+            const id = 'l_'+Date.now(); addMsg('ai', `<span id="${id}">설명을 떠올리고 있어요...💭</span>`);
+            const q = `현재 '${currKey}: ${currVal};' 설정이 사용됨. 뜻과 동작 원리를 초보자가 100% 이해할 수 있게 쉽지만 구체적인 3문장으로 쉽고 친절히 답해줘.`;
             const txt = await callAPI([{ role: 'user', parts: [{text: q}] }]);
             if($(id)) $(id).parentElement.remove();
             if(txt) { chatMemories[currKey] = [{ r: 'model', html: formatAi(txt) }]; renderChat(); } 
@@ -275,7 +274,7 @@
             UI.chatIn.value = ''; chatMemories[currKey].push({ r: 'user', html: m }); renderChat();
             
             const id = 'l_'+Date.now(); addMsg('ai', `<span id="${id}">작성 중...💭</span>`);
-            let ctx = [{ role: 'user', parts: [{ text: `초보자 코딩 강사. 속성: '${currKey}'(값:'${currVal}'). 친절한 비유 사용.` }] }];
+            let ctx = [{ role: 'user', parts: [{ text: `초보자 코딩 강사. 속성: '${currKey}'(값:'${currVal}'). 쉽고 구체적인 설명 사용.` }] }];
             chatMemories[currKey].forEach(h => ctx.push({ role: h.r==='model'?'model':'user', parts: [{ text: h.html }] }));
             
             const txt = await callAPI(ctx);
@@ -348,30 +347,15 @@
         const minimizeExplanation = () => { UI.popup.classList.remove('show'); UI.bulb.style.display = 'flex'; };
         const closeExplanation = () => { UI.popup.classList.remove('show'); UI.bulb.style.display = 'none'; };
 
-        // 💡 추가된 부분: 텍스트에어리어 자동 스크롤 기능
-        function scrollToPos(index) {
-            const textBefore = UI.editor.value.substring(0, index);
-            const lines = (textBefore.match(/\n/g) || []).length;
-            UI.editor.scrollTop = (lines * 19.5) - 40; 
-        }
-
         function hlTag(e, s, end, n, kn) {
             if(e) e.stopPropagation(); UI.editor.focus({preventScroll:true}); UI.editor.setSelectionRange(s, end);
-            scrollToPos(s);
             if(n && n !== '#t') openPop(['div','details','span'].includes(n)?n:'태그', kn, '전체');
         }
 
         function hlProp(e, s, oe, k, kn, v) {
             e.stopPropagation(); const c = UI.editor.value, tc = c.substring(s, oe), rx = new RegExp(`(?<![\\w-])${k.replace(/-/g, '\\-')}\\s*:\\s*[^;"]+`, 'i'), m = tc.match(rx);
             UI.editor.focus({preventScroll:true});
-            let targetIdx = s;
-            if (m) {
-                targetIdx = s + m.index;
-                UI.editor.setSelectionRange(targetIdx, targetIdx + m[0].length);
-            } else {
-                UI.editor.setSelectionRange(s, oe);
-            }
-            scrollToPos(targetIdx);
+            if (m) UI.editor.setSelectionRange(s + m.index, s + m.index + m[0].length); else UI.editor.setSelectionRange(s, oe);
             openPop(k, kn, v);
         }
 
