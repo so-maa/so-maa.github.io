@@ -175,7 +175,6 @@
             </div>
 
             <div>
-                <!-- 👇 신규 추가: 코드 편집기 글자수 표시 기능 적용 -->
                 <div class="section-title">
                     <span style="display:flex; align-items:center; gap:8px;">
                         📝 코드 편집기 
@@ -355,17 +354,35 @@
             }).filter(Boolean);
         }
 
-        /* 👇 신규 추가: 구조 분석을 접기/펴기 방식에서 한눈에 펼쳐진 블록형 목록 방식으로 변경 */
+        /* 👇 안전하게 교체된 부분: 구조 분석을 들여쓰기(중첩) 없이 1차원 평면으로 나열하고, 접기/펴기 복구 */
         function renderTree(nodes) {
-            return nodes.map(nd => {
+            let flatNodes = [];
+            function flatten(nList) {
+                for (let nd of nList) {
+                    flatNodes.push(nd);
+                    if (nd.c && nd.c.length) flatten(nd.c); // 자식 노드를 바로 뒤에 일렬로 추가
+                }
+            }
+            flatten(nodes);
+
+            return flatNodes.map(nd => {
                 const info = transTag(nd.n, nd.txt), styles = getStyles(nd.a);
-                let h = `<div class="tree-node">`;
-                if (nd.n === '#t' || nd.n === 'br') h += `<div class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')">${info.t}</div>`;
-                else {
-                    h += `<div><div class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')" style="margin-bottom: 4px;">${info.b?`<span class="badge ${info.b}">${info.b.toUpperCase()}</span>`:''}${info.t} (${styles.length})</div>`;
-                    if (styles.length) h += `<div class="prop-list">` + styles.map(p => `<div class="prop-item" onclick="hlProp(event, ${nd.s}, ${nd.oe}, '${p.k}', '${dict[p.k]||p.k}', '${p.v.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="prop-name">${dict[p.k]||p.k}</span><span class="prop-value">${p.v}</span></div>`).join('') + `</div>`;
-                    if (nd.c.length) h += `<div class="tree-children">${renderTree(nd.c)}</div>`;
-                    h += `</div>`;
+                
+                // 각 상자마다 아래쪽 여백(margin-bottom)을 주어 한 칸씩 띄움
+                let h = `<div class="tree-node" style="margin-bottom: 12px;">`;
+                
+                if (nd.n === '#t' || nd.n === 'br') {
+                    h += `<div class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')">${info.t}</div>`;
+                } else {
+                    // <details open> 태그를 다시 사용하여 기본적으로 열려있되, 클릭 시 접을 수 있게 복구
+                    // 재귀 호출(nd.c 렌더링)을 제거하여 박스 안의 박스가 생기지 않도록 함
+                    h += `<details open><summary class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')" style="margin-bottom: 4px;">${info.b?`<span class="badge ${info.b}">${info.b.toUpperCase()}</span>`:''}${info.t} (${styles.length})</summary>`;
+                    
+                    if (styles.length) {
+                        h += `<div class="prop-list">` + styles.map(p => `<div class="prop-item" onclick="hlProp(event, ${nd.s}, ${nd.oe}, '${p.k}', '${dict[p.k]||p.k}', '${p.v.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="prop-name">${dict[p.k]||p.k}</span><span class="prop-value">${p.v}</span></div>`).join('') + `</div>`;
+                    }
+                    
+                    h += `</details>`;
                 }
                 return h + `</div>`;
             }).join('');
@@ -414,7 +431,6 @@
             }
         }
 
-        /* 👇 신규 추가: 코드 편집기에 글자가 입력될 때마다 실시간으로 글자 수를 계산해서 화면에 적용 */
         UI.editor.addEventListener('input', () => { 
             UI.preview.innerHTML = UI.editor.value; 
             analyzeCode(UI.editor.value); 
