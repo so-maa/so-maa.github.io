@@ -20,24 +20,33 @@
         .box-base { background: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 15px; }
         
         .preview-box {
-    background: #fff radial-gradient(#e2e8f0 1px, transparent 0);
-    background-size: 15px 15px;
-    border-top: 2px dashed #565f89;
-    border-bottom: 2px dashed #565f89;
-    border-left: none;
-    border-right: none;
-    border-radius: 0;
-    margin: 0 -20px;
-    padding: 20px;
-    
-    /* 👇 이 부분이 핵심입니다 */
-    height: 350px;        /* 칸의 세로 너비를 350px로 고정 */
-    overflow-y: auto;     /* 내용이 350px을 넘어가면 세로 스크롤 생성 */
-    overflow-x: hidden;
-    
-    color: #333;
-}
+            background: #fff radial-gradient(#e2e8f0 1px, transparent 0);
+            background-size: 15px 15px;
+            border-top: 2px dashed #565f89;
+            border-bottom: 2px dashed #565f89;
+            border-left: none;
+            border-right: none;
+            border-radius: 0;
+            margin: 0 -20px;
+            padding: 20px;
+            
+            height: 350px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            color: #333;
 
+            /* 👇 로판AI 플랫폼과 동일한 환경을 만들어주는 마법의 코드 👇 */
+            display: flex;
+            justify-content: center; /* 상태창을 화면 한가운데로 예쁘게 정렬 */
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif; /* 플랫폼 기본 폰트 적용 */
+            font-size: 15px; /* 플랫폼 기본 글자 크기 */
+        }
+
+        /* 👇 해독기의 전체 디자인은 유지하되, 내부 상태창만 모바일 채팅창 크기(약 420px)로 꽉 잡아줍니다 👇 */
+        .preview-box > div {
+            width: 100% !important;
+            max-width: 420px !important; 
+        }
         
         .code-textarea { width: 100%; height: 250px; background: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 12px; padding: 15px; font-family: Consolas, monospace; font-size: 13px; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
         .code-textarea:focus { border-color: #7aa2f7; box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2); }
@@ -316,7 +325,7 @@
             for (let t of tokens) {
                 let p = stack[stack.length - 1];
                 if (t.isTag && !t.isClose) {
-                    let node = { n: t.name, s: t.s, oe: t.e, e: t.e, c: [], a: t.attrs }; p.c.push(node);
+                    let node = { n: t.name, s: t.s, 노: t.s, oe: t.e, e: t.e, c: [], a: t.attrs }; p.c.push(node);
                     if (!voids.includes(t.name)) stack.push(node);
                 } else if (t.isTag && t.isClose) {
                     for (let i = stack.length - 1; i >= 1; i--) if (stack[i].n === t.name) { stack[i].e = t.e; stack.length = i; break; }
