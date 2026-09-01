@@ -9,58 +9,24 @@
         .app-wrapper { width: 100%; max-width: 900px; transition: filter 0.3s; }
         .blurred { filter: blur(8px) brightness(0.6); pointer-events: none; user-select: none; }
         .app-container { display: flex; flex-direction: column; gap: 20px; }
-        
         .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; flex-wrap: wrap; gap: 10px; }
         .tracker-title { font-size: 20px; font-weight: bold; color: #c0caf5; display: flex; align-items: center; gap: 10px; }
         .slot-container { display: flex; gap: 6px; }
         .slot-btn { background: #24283b; color: #565f89; border: 1px solid #414868; border-radius: 6px; width: 32px; height: 32px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; padding: 0; }
         .slot-btn.active { background: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
         .section-title { font-size: 14px; font-weight: bold; color: #7aa2f7; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
-        
         .box-base { background: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 15px; }
-        
-        .preview-box {
-            background: #fff radial-gradient(#e2e8f0 1px, transparent 0);
-            background-size: 15px 15px;
-            border-top: 2px dashed #565f89;
-            border-bottom: 2px dashed #565f89;
-            border-left: none;
-            border-right: none;
-            border-radius: 0;
-            margin: 0 -20px;
-            padding: 22px 16px 24px 16px;
-            height: 356px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            overflow-x: hidden;
-            color: #333;
-            font-family: system-ui, -apple-system, 'Noto Sans KR', sans-serif;
-            -webkit-text-size-adjust: 100%;
-        }
-
-        .preview-box * {
-            box-sizing: border-box !important;
-        }
-
-        .preview-highlight {
-            outline: 2px solid rgba(247, 118, 142, 0.5) !important;
-            outline-offset: -2px !important;
-            box-shadow: inset 0 0 10px rgba(247, 118, 142, 0.15) !important;
-            transition: outline 0.1s, box-shadow 0.1s;
-            position: relative;
-            z-index: 10;
-        }
-        
+        .preview-box { background: #fff radial-gradient(#e2e8f0 1px, transparent 0); background-size: 15px 15px; border-top: 2px dashed #565f89; border-bottom: 2px dashed #565f89; border-left: none; border-right: none; border-radius: 0; margin: 0 -20px; padding: 22px 16px 24px 16px; height: 356px; box-sizing: border-box; overflow-y: auto; overflow-x: hidden; color: #333; font-family: system-ui, -apple-system, 'Noto Sans KR', sans-serif; -webkit-text-size-adjust: 100%; }
+        .preview-box * { box-sizing: border-box !important; }
+        .preview-highlight { outline: 2px solid rgba(247, 118, 142, 0.5) !important; outline-offset: -2px !important; box-shadow: inset 0 0 10px rgba(247, 118, 142, 0.15) !important; transition: outline 0.1s, box-shadow 0.1s; position: relative; z-index: 10; }
         .code-textarea { width: 100%; height: 250px; background: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 12px; padding: 15px; font-family: Consolas, monospace; font-size: 13px; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
         .code-textarea:focus { border-color: #7aa2f7; box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2); }
         .code-textarea::selection { background: #364A82; color: #fff; }
         .structure-box { min-height: 300px; max-height: 500px; overflow-y: auto; }
-        
         .usage-bar { display: none; background: rgba(187, 154, 247, 0.1); border: 1px dashed #bb9af7; border-radius: 8px; padding: 12px 15px; align-items: center; justify-content: space-between; margin-bottom: 5px; }
         .usage-bar.active { display: flex; }
         .usage-text { font-size: 12px; font-weight: bold; color: #bb9af7; }
         .usage-subtext { font-size: 11px; color: #a9b1d6; }
-
         .tree-node { margin: 4px 0; font-size: 13px; line-height: 1.4; }
         .tree-summary { display: inline-block; padding: 6px 10px; background: #1f2335; border: 1px solid #414868; border-radius: 6px; cursor: pointer; transition: 0.2s; color: #c0caf5; user-select: none; font-weight: bold; }
         .tree-summary:hover { background: #7aa2f7; color: #1a1b26; border-color: #7aa2f7; }
@@ -75,44 +41,34 @@
         .badge.text { background: #bb9af7; color: #1a1b26; }
         .badge.special { background: #f7768e; color: #1a1b26; }
         .empty-msg { text-align: center; color: #565f89; font-size: 13px; margin-top: 50px; }
-        
         .action-btn { background: #414868; color: #c0caf5; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         details[open] > summary { background: #364A82; border-color: #7aa2f7; color: #fff; }
-
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1a1b26; }
         ::-webkit-scrollbar-thumb { background: #414868; border-radius: 4px; }
-        
         .bulb-btn { position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; border-radius: 50%; background: #bb9af7; color: #1a1b26; font-size: 26px; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; z-index: 10000; border: none; transition: transform 0.2s, filter 0.2s; }
         .bulb-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
-
         .explanation-popup { position: fixed; bottom: 25px; left: 25px; width: 330px; background: #1f2335; border: 2px solid #bb9af7; border-radius: 12px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 9999; display: flex; flex-direction: column; gap: 8px; transform: translateX(-150%); opacity: 0; visibility: hidden; pointer-events: none; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s, visibility 0.4s; }
         .explanation-popup.show { transform: translateX(0); opacity: 1; visibility: visible; pointer-events: auto; }
-        
         .popup-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #414868; padding-bottom: 6px; }
         .popup-title { color: #bb9af7; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-        
         .popup-reset-btn { font-size: 11px; font-weight: bold; border: 1px solid #414868; padding: 3px 6px; border-radius: 4px; background: transparent; color: #a9b1d6; cursor: pointer; transition: 0.2s; }
         .popup-reset-btn:hover { color: #f7768e; border-color: #f7768e; }
         .popup-min-btn { background: none; border: none; color: #a9b1d6; font-size: 24px; cursor: pointer; padding: 0; font-weight: bold; line-height: 1; margin-top: -4px; transition: 0.2s; }
         .popup-min-btn:hover { color: #bb9af7; }
         .popup-close-btn { background: none; border: none; color: #a9b1d6; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; transition: 0.2s; }
         .popup-close-btn:hover { color: #f7768e; }
-        
         .popup-prop-name { color: #1a1b26; font-weight: bold; font-size: 14px; background: #bb9af7; padding: 5px; border-radius: 6px; text-align: center; margin-bottom: 2px; }
-        
         .chat-log { max-height: 250px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px; margin-top: 5px; }
         .chat-msg { font-size: 13px; line-height: 1.5; padding: 10px; border-radius: 8px; word-break: keep-all; }
         .chat-msg.ai { background: #24283b; color: #c0caf5; border: 1px solid #414868; border-top-left-radius: 0; }
         .chat-msg.user { background: #364A82; color: #fff; align-self: flex-end; border-top-right-radius: 0; }
-        
         .ai-req-btn { background: transparent; border: 1px solid #bb9af7; color: #bb9af7; width: 100%; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 5px; }
         .chat-input-row { display: flex; gap: 5px; margin-top: 5px; }
         .chat-input { flex: 1; background: #1a1b26; border: 1px solid #414868; color: #c0caf5; padding: 8px 12px; border-radius: 20px; font-size: 12px; outline: none; }
         .chat-send-btn { background: #bb9af7; color: #1a1b26; border: none; border-radius: 20px; padding: 0 12px; font-weight: bold; cursor: pointer; font-size: 12px; }
-
         .intro-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; display: flex; justify-content: center; align-items: center; background: rgba(26, 27, 38, 0.4); }
         .intro-box { background: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 20px; width: 90%; max-width: 300px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 10px; text-align: center; }
         .intro-box h2 { margin: 0; font-size: 16px; color: #bb9af7; }
@@ -123,7 +79,6 @@
         .btn-yes-api { background: #bb9af7; color: #1a1b26; }
         .api-input-container { display: none; flex-direction: column; gap: 8px; margin-top: 5px; }
         .api-input { padding: 8px; border-radius: 8px; border: 1px solid #414868; background: #1a1b26; color: #c0caf5; outline: none; font-size: 12px; }
-
         @media (hover: hover) {
             .action-btn:hover, .slot-btn:hover:not(.active) { background: #414868; color: #c0caf5; }
             .popup-close-btn:hover { color: #f7768e; }
@@ -226,25 +181,16 @@
         const $ = id => document.getElementById(id);
         const MODEL_NAME = "gemini-3.5-flash-lite";
         const MAX_USAGE = 500;
-        
         let geminiApiKey = null, currentSlot = 1, chatMemories = {}, currKey = '', currVal = '';
         let isTrackerOn = false, domElementMap = [];
 
-        const UI = {
-            app: $('appWrapper'), intro: $('introOverlay'), usageBar: $('usageBar'), usageTxt: $('usageCountText'),
-            preview: $('previewBox'), editor: $('codeEditor'), tree: $('structureBox'),
-            bulb: $('bulbBtn'), popup: $('explanationPopup'), log: $('chatLog'), chatRow: $('chatInputRow'), chatIn: $('chatInput'), propName: $('popupPropName')
-        };
+        const UI = { app: $('appWrapper'), intro: $('introOverlay'), usageBar: $('usageBar'), usageTxt: $('usageCountText'), preview: $('previewBox'), editor: $('codeEditor'), tree: $('structureBox'), bulb: $('bulbBtn'), popup: $('explanationPopup'), log: $('chatLog'), chatRow: $('chatInputRow'), chatIn: $('chatInput'), propName: $('popupPropName') };
         const store = { get: k => localStorage.getItem(k), set: (k,v) => localStorage.setItem(k, v), getObj: k => JSON.parse(localStorage.getItem(k))||null, setObj: (k,v) => localStorage.setItem(k, JSON.stringify(v)) };
 
         window.onload = () => { loadData(1); const k = store.get('savedGeminiKey'); if(k) $('introApiInput').value = k; }
-
         const selectNoApi = () => { geminiApiKey = null; closeIntro(); };
         const selectYesApi = () => { $('introBtnGroup').style.display = 'none'; $('apiInputContainer').style.display = 'flex'; };
-        const submitApiKey = () => {
-            const k = $('introApiInput').value.trim();
-            if(k) { geminiApiKey = k; store.set('savedGeminiKey', k); updateUsage(); closeIntro(); } else alert('API 키를 입력해주세요!');
-        };
+        const submitApiKey = () => { const k = $('introApiInput').value.trim(); if(k) { geminiApiKey = k; store.set('savedGeminiKey', k); updateUsage(); closeIntro(); } else alert('API 키를 입력해주세요!'); };
         const closeIntro = () => { UI.intro.style.display = 'none'; UI.app.classList.remove('blurred'); };
 
         function updateUsage() {
@@ -253,13 +199,10 @@
             const today = new Date().toDateString();
             let data = store.getObj('geminiUsage') || { d: today, c: 0 };
             if (data.d !== today) { data = { d: today, c: 0 }; store.setObj('geminiUsage', data); }
-            
-            let stat = data.c >= MAX_USAGE ? `<span style="color:#f7768e;">(100% 소진! 내일 초기화)</span>` : 
-                       data.c >= 450 ? `<span style="color:#e0af68;">(한도 임박! 내일 초기화)</span>` : `<span style="color:#a9b1d6;">(매일 밤 12시 초기화)</span>`;
+            let stat = data.c >= MAX_USAGE ? `<span style="color:#f7768e;">(100% 소진! 내일 초기화)</span>` : data.c >= 450 ? `<span style="color:#e0af68;">(한도 임박! 내일 초기화)</span>` : `<span style="color:#a9b1d6;">(매일 밤 12시 초기화)</span>`;
             UI.usageTxt.innerHTML = `오늘 질문: ${data.c}회 / ${MAX_USAGE}회 ${stat}`;
         }
         function incUsage() { let d = store.getObj('geminiUsage') || {d: new Date().toDateString(), c: 0}; d.c++; store.setObj('geminiUsage', d); updateUsage(); }
-
         const addMsg = (role, html) => { UI.log.insertAdjacentHTML('beforeend', `<div class="chat-msg ${role}">${html}</div>`); UI.log.scrollTop = UI.log.scrollHeight; };
         const formatAi = t => t.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:#bb9af7;">$1</b>');
 
@@ -288,9 +231,7 @@
 
         const callAPI = async (contents) => {
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${geminiApiKey}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents })
-                });
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${geminiApiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents }) });
                 const d = await res.json();
                 if(d.error) throw new Error(d.error.message);
                 incUsage(); return d.candidates[0].content.parts[0].text;
@@ -310,11 +251,9 @@
         const sendChatMsg = async () => {
             const m = UI.chatIn.value.trim(); if(!m) return;
             UI.chatIn.value = ''; chatMemories[currKey].push({ r: 'user', html: m }); renderChat();
-            
             const id = 'l_'+Date.now(); addMsg('ai', `<span id="${id}">작성 중...💭</span>`);
             let ctx = [{ role: 'user', parts: [{ text: `초보자 코딩 강사. 속성: '${currKey}'(값:'${currVal}'). 쉽고 구체적인 설명 사용.` }] }];
             chatMemories[currKey].forEach(h => ctx.push({ role: h.r==='model'?'model':'user', parts: [{ text: h.html }] }));
-            
             const txt = await callAPI(ctx);
             if($(id)) $(id).parentElement.remove();
             if(txt) { chatMemories[currKey].push({ r: 'model', html: formatAi(txt) }); renderChat(); }
@@ -354,31 +293,20 @@
             }).filter(Boolean);
         }
 
-        /* 👇 교체된 부분: <details open>을 <details>로 변경하여 기본적으로 상자들이 닫혀있도록 수정 */
         function renderTree(nodes) {
             let flatNodes = [];
             function flatten(nList) {
-                for (let nd of nList) {
-                    flatNodes.push(nd);
-                    if (nd.c && nd.c.length) flatten(nd.c);
-                }
+                for (let nd of nList) { flatNodes.push(nd); if (nd.c && nd.c.length) flatten(nd.c); }
             }
             flatten(nodes);
-
             return flatNodes.map(nd => {
                 const info = transTag(nd.n, nd.txt), styles = getStyles(nd.a);
                 let h = `<div class="tree-node" style="margin-bottom: 12px;">`;
-                
                 if (nd.n === '#t' || nd.n === 'br') {
                     h += `<div class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')">${info.t}</div>`;
                 } else {
-                    // <details> 태그를 사용하여 기본적으로 접혀있고, 클릭 시 펼칠 수 있도록 수정
                     h += `<details><summary class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')" style="margin-bottom: 4px;">${info.b?`<span class="badge ${info.b}">${info.b.toUpperCase()}</span>`:''}${info.t} (${styles.length})</summary>`;
-                    
-                    if (styles.length) {
-                        h += `<div class="prop-list">` + styles.map(p => `<div class="prop-item" onclick="hlProp(event, ${nd.s}, ${nd.oe}, '${p.k}', '${dict[p.k]||p.k}', '${p.v.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="prop-name">${dict[p.k]||p.k}</span><span class="prop-value">${p.v}</span></div>`).join('') + `</div>`;
-                    }
-                    
+                    if (styles.length) h += `<div class="prop-list">` + styles.map(p => `<div class="prop-item" onclick="hlProp(event, ${nd.s}, ${nd.oe}, '${p.k}', '${dict[p.k]||p.k}', '${p.v.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="prop-name">${dict[p.k]||p.k}</span><span class="prop-value">${p.v}</span></div>`).join('') + `</div>`;
                     h += `</details>`;
                 }
                 return h + `</div>`;
@@ -388,43 +316,24 @@
         function toggleTracker() {
             isTrackerOn = !isTrackerOn;
             const btn = $('toggleTrackerBtn');
-            if (isTrackerOn) {
-                btn.innerHTML = '🔍 위치 추적: ON';
-                btn.style.background = '#bb9af7';
-                btn.style.color = '#1a1b26';
-                highlightTargetElement(); 
-            } else {
-                btn.innerHTML = '🔍 위치 추적: OFF';
-                btn.style.background = '#414868';
-                btn.style.color = '#c0caf5';
-                clearHighlight();
-            }
+            if (isTrackerOn) { btn.innerHTML = '🔍 위치 추적: ON'; btn.style.background = '#bb9af7'; btn.style.color = '#1a1b26'; highlightTargetElement(); } 
+            else { btn.innerHTML = '🔍 위치 추적: OFF'; btn.style.background = '#414868'; btn.style.color = '#c0caf5'; clearHighlight(); }
         }
 
-        function clearHighlight() {
-            const els = UI.preview.querySelectorAll('.preview-highlight');
-            els.forEach(el => el.classList.remove('preview-highlight'));
-        }
+        function clearHighlight() { UI.preview.querySelectorAll('.preview-highlight').forEach(el => el.classList.remove('preview-highlight')); }
 
         function highlightTargetElement() {
             if (!isTrackerOn) return;
             clearHighlight();
-            
             const cursorPos = UI.editor.selectionStart;
             let targetIndex = -1;
-            
             for (let i = 0; i < domElementMap.length; i++) {
                 const node = domElementMap[i];
-                if (cursorPos >= node.s && cursorPos <= node.e) {
-                    targetIndex = i;
-                }
+                if (cursorPos >= node.s && cursorPos <= node.e) targetIndex = i;
             }
-            
             if (targetIndex !== -1) {
                 const domElements = UI.preview.querySelectorAll('*');
-                if (domElements[targetIndex]) {
-                    domElements[targetIndex].classList.add('preview-highlight');
-                }
+                if (domElements[targetIndex]) domElements[targetIndex].classList.add('preview-highlight');
             }
         }
 
@@ -441,28 +350,17 @@
         function analyzeCode(html) { 
             const ast = parseHTML(html);
             UI.tree.innerHTML = !html.trim() ? '<div class="empty-msg">결과가 나타납니다.</div>' : renderTree(ast); 
-            
             domElementMap = [];
             function mapElements(nodes) {
                 for(let nd of nodes) {
-                    if(nd.n !== '#t') { 
-                        domElementMap.push(nd);
-                        if(nd.c && nd.c.length > 0) mapElements(nd.c);
-                    }
+                    if(nd.n !== '#t') { domElementMap.push(nd); if(nd.c && nd.c.length > 0) mapElements(nd.c); }
                 }
             }
             mapElements(ast);
             if(isTrackerOn) highlightTargetElement();
         }
 
-        function openPop(k, kn, v) { 
-            currKey = k; currVal = v; 
-            UI.propName.textContent = kn; 
-            renderChat();
-            UI.popup.classList.remove('show');
-            UI.bulb.style.display = 'flex';
-        }
-        
+        function openPop(k, kn, v) { currKey = k; currVal = v; UI.propName.textContent = kn; renderChat(); UI.popup.classList.remove('show'); UI.bulb.style.display = 'flex'; }
         const maximizeExplanation = () => { UI.bulb.style.display = 'none'; UI.popup.classList.add('show'); };
         const minimizeExplanation = () => { UI.popup.classList.remove('show'); UI.bulb.style.display = 'flex'; };
         const closeExplanation = () => { UI.popup.classList.remove('show'); UI.bulb.style.display = 'none'; };
@@ -493,7 +391,6 @@
             const adjustKeyboard = () => {
                 let offset = window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop);
                 if (offset < 0) offset = 0;
-                
                 const popupBase = window.innerWidth <= 768 ? 20 : 25;
                 UI.popup.style.bottom = (offset + popupBase) + 'px';
                 UI.bulb.style.bottom = (offset + 30) + 'px';
