@@ -20,6 +20,7 @@
         .box-base { background: #24283b; border: 1px solid #414868; border-radius: 12px; padding: 15px; }
         
         .preview-box {
+            /* 기존 해독기의 모눈종이 배경 및 테두리 디자인 유지 */
             background: #fff radial-gradient(#e2e8f0 1px, transparent 0);
             background-size: 15px 15px;
             border-top: 2px dashed #565f89;
@@ -28,24 +29,34 @@
             border-right: none;
             border-radius: 0;
             margin: 0 -20px;
-            padding: 20px;
             
+            /* 로판 플랫폼의 여백(Padding) 적용 */
+            padding: 38px 16px 40px 16px;
+            
+            /* 기존 해독기의 높이 및 스크롤 설정 유지 */
             height: 350px;
             overflow-y: auto;
             overflow-x: hidden;
+            
             color: #333;
-
-            /* 👇 로판AI 플랫폼과 동일한 환경을 만들어주는 마법의 코드 👇 */
+            
+            /* 상태창 가로 중앙 정렬 및 플랫폼 폰트(Noto Sans 등) 적용 */
             display: flex;
-            justify-content: center; /* 상태창을 화면 한가운데로 예쁘게 정렬 */
-            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif; /* 플랫폼 기본 폰트 적용 */
-            font-size: 15px; /* 플랫폼 기본 글자 크기 */
+            justify-content: center;
+            font-family: system-ui, -apple-system, 'Noto Sans KR', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        /* 👇 해독기의 전체 디자인은 유지하되, 내부 상태창만 모바일 채팅창 크기(약 420px)로 꽉 잡아줍니다 👇 */
+        /* 로판 플랫폼의 크기 계산법(box-sizing)을 미리보기 내부에만 강제 적용 */
+        .preview-box * {
+            box-sizing: border-box !important;
+        }
+
+        /* 상태창 가로 너비(max-width) 제한 적용 */
         .preview-box > div {
             width: 100% !important;
-            max-width: 420px !important; 
+            max-width: 800px !important;
         }
         
         .code-textarea { width: 100%; height: 250px; background: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 12px; padding: 15px; font-family: Consolas, monospace; font-size: 13px; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
@@ -325,7 +336,7 @@
             for (let t of tokens) {
                 let p = stack[stack.length - 1];
                 if (t.isTag && !t.isClose) {
-                    let node = { n: t.name, s: t.s, 노: t.s, oe: t.e, e: t.e, c: [], a: t.attrs }; p.c.push(node);
+                    let node = { n: t.name, s: t.s, oe: t.e, e: t.e, c: [], a: t.attrs }; p.c.push(node);
                     if (!voids.includes(t.name)) stack.push(node);
                 } else if (t.isTag && t.isClose) {
                     for (let i = stack.length - 1; i >= 1; i--) if (stack[i].n === t.name) { stack[i].e = t.e; stack.length = i; break; }
