@@ -28,27 +28,28 @@
             border-right: none;
             border-radius: 0;
             margin: 0 -20px;
-            
-            /* 로판 플랫폼의 상하 여백(22px, 24px) 적용 및 좌우 여백 설정 */
             padding: 22px 16px 24px 16px;
-            
-            /* 로판 플랫폼 iframe의 정확한 계산 높이 적용 및 박스 압축 */
             height: 356px;
             box-sizing: border-box;
-            
             overflow-y: auto;
             overflow-x: hidden;
-            
             color: #333;
-            
-            /* 로판 플랫폼 폰트 적용 및 모바일 텍스트 자동 확대 방지 */
             font-family: system-ui, -apple-system, 'Noto Sans KR', sans-serif;
             -webkit-text-size-adjust: 100%;
         }
 
-        /* 로판 플랫폼의 전체 요소 크기 계산법을 미리보기 내부에만 강제 적용 */
         .preview-box * {
             box-sizing: border-box !important;
+        }
+
+        /* 👇 신규 추가: 사용자가 클릭한 요소에 씌워질 형광펜(강조) 효과 */
+        .preview-highlight {
+            outline: 3px solid #f7768e !important;
+            outline-offset: -3px !important;
+            box-shadow: inset 0 0 15px rgba(247, 118, 142, 0.4) !important;
+            transition: outline 0.1s, box-shadow 0.1s;
+            position: relative;
+            z-index: 10;
         }
         
         .code-textarea { width: 100%; height: 250px; background: #16161e; color: #9ece6a; border: 1px solid #414868; border-radius: 12px; padding: 15px; font-family: Consolas, monospace; font-size: 13px; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
@@ -76,7 +77,7 @@
         .badge.special { background: #f7768e; color: #1a1b26; }
         .empty-msg { text-align: center; color: #565f89; font-size: 13px; margin-top: 50px; }
         
-        .action-btn { background: #414868; color: #c0caf5; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .action-btn { background: #414868; color: #c0caf5; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         details[open] > summary { background: #364A82; border-color: #7aa2f7; color: #fff; }
@@ -167,7 +168,11 @@
             </div>
 
             <div>
-                <div class="section-title">💻 미리보기</div>
+                <!-- 👇 신규 추가: 미리보기 창 상단에 위치 추적 토글 버튼 배치 -->
+                <div class="section-title">
+                    <span>💻 미리보기</span>
+                    <button class="action-btn" id="toggleTrackerBtn" onclick="toggleTracker()">🔍 위치 추적: OFF</button>
+                </div>
                 <div id="previewBox" class="preview-box"></div>
             </div>
 
@@ -220,7 +225,10 @@
         const $ = id => document.getElementById(id);
         const MODEL_NAME = "gemini-3.5-flash-lite";
         const MAX_USAGE = 500;
+        
+        // 👇 신규 추가: 위치 추적용 변수
         let geminiApiKey = null, currentSlot = 1, chatMemories = {}, currKey = '', currVal = '';
+        let isTrackerOn = false, domElementMap = [];
 
         const UI = {
             app: $('appWrapper'), intro: $('introOverlay'), usageBar: $('usageBar'), usageTxt: $('usageCountText'),
@@ -361,9 +369,79 @@
             }).join('');
         }
 
-        UI.editor.addEventListener('input', () => { UI.preview.innerHTML = UI.editor.value; analyzeCode(UI.editor.value); store.set('htmlCodeSlot_'+currentSlot, UI.editor.value); });
+        // 👇 신규 추가: 위치 추적 토글 제어 함수
+        function toggleTracker() {
+            isTrackerOn = !isTrackerOn;
+            const btn = $('toggleTrackerBtn');
+            if (isTrackerOn) {
+                btn.innerHTML = '🔍 위치 추적: ON';
+                btn.style.background = '#bb9af7';
+                btn.style.color = '#1a1b26';
+                highlightTargetElement(); 
+            } else {
+                btn.innerHTML = '🔍 위치 추적: OFF';
+                btn.style.background = '#414868';
+                btn.style.color = '#c0caf5';
+                clearHighlight();
+            }
+        }
+
+        function clearHighlight() {
+            const els = UI.preview.querySelectorAll('.preview-highlight');
+            els.forEach(el => el.classList.remove('preview-highlight'));
+        }
+
+        // 👇 신규 추가: 에디터 커서 위치를 바탕으로 요소에 형광펜 칠하기
+        function highlightTargetElement() {
+            if (!isTrackerOn) return;
+            clearHighlight();
+            
+            const cursorPos = UI.editor.selectionStart;
+            let targetIndex = -1;
+            
+            // 구조 분석 트리에서 커서가 위치한 가장 깊은 태그 찾기
+            for (let i = 0; i < domElementMap.length; i++) {
+                const node = domElementMap[i];
+                if (cursorPos >= node.s && cursorPos <= node.e) {
+                    targetIndex = i;
+                }
+            }
+            
+            if (targetIndex !== -1) {
+                const domElements = UI.preview.querySelectorAll('*');
+                if (domElements[targetIndex]) {
+                    domElements[targetIndex].classList.add('preview-highlight');
+                }
+            }
+        }
+
+        UI.editor.addEventListener('input', () => { 
+            UI.preview.innerHTML = UI.editor.value; 
+            analyzeCode(UI.editor.value); 
+            store.set('htmlCodeSlot_'+currentSlot, UI.editor.value); 
+        });
         
-        function analyzeCode(html) { UI.tree.innerHTML = !html.trim() ? '<div class="empty-msg">결과가 나타납니다.</div>' : renderTree(parseHTML(html)); }
+        // 👇 신규 추가: 에디터 창을 클릭하거나 키보드를 움직일 때 실시간 추적 실행
+        UI.editor.addEventListener('click', highlightTargetElement);
+        UI.editor.addEventListener('keyup', highlightTargetElement);
+        
+        function analyzeCode(html) { 
+            const ast = parseHTML(html);
+            UI.tree.innerHTML = !html.trim() ? '<div class="empty-msg">결과가 나타납니다.</div>' : renderTree(ast); 
+            
+            // 👇 신규 추가: 렌더링된 화면과 코드를 1:1로 매핑하는 가상의 그림자 지도 생성
+            domElementMap = [];
+            function mapElements(nodes) {
+                for(let nd of nodes) {
+                    if(nd.n !== '#t') { 
+                        domElementMap.push(nd);
+                        if(nd.c && nd.c.length > 0) mapElements(nd.c);
+                    }
+                }
+            }
+            mapElements(ast);
+            if(isTrackerOn) highlightTargetElement();
+        }
 
         function openPop(k, kn, v) { 
             currKey = k; currVal = v; 
@@ -380,6 +458,7 @@
         function hlTag(e, s, end, n, kn) {
             if(e) e.stopPropagation(); UI.editor.focus({preventScroll:true}); UI.editor.setSelectionRange(s, end);
             if(n && n !== '#t') openPop(['div','details','span'].includes(n)?n:'태그', kn, '전체');
+            highlightTargetElement(); // 클릭 시 함께 연동되도록 추가
         }
 
         function hlProp(e, s, oe, k, kn, v) {
@@ -387,6 +466,7 @@
             UI.editor.focus({preventScroll:true});
             if (m) UI.editor.setSelectionRange(s + m.index, s + m.index + m[0].length); else UI.editor.setSelectionRange(s, oe);
             openPop(k, kn, v);
+            highlightTargetElement(); // 클릭 시 함께 연동되도록 추가
         }
 
         function switchSlot(num) {
