@@ -122,19 +122,13 @@
             </div>
 
             <div>
-                <div class="section-title">
-                    <span>💻 미리보기</span>
-                    <button class="action-btn" id="toggleTrackerBtn" onclick="toggleTracker()">🔍 위치 추적: OFF</button>
-                </div>
+                <div class="section-title">💻 미리보기</div>
                 <div id="previewBox" class="preview-box"></div>
             </div>
 
             <div>
                 <div class="section-title">
-                    <span style="display:flex; align-items:center; gap:8px;">
-                        📝 코드 편집기 
-                        <span id="charCount" style="font-size:12px; color:#565f89; font-weight:normal;">(0자)</span>
-                    </span>
+                    <span>📝 코드 편집기</span>
                     <button class="action-btn" onclick="copyCode()">코드 복사</button>
                 </div>
                 <div class="code-editor-container">
@@ -182,15 +176,22 @@
         const MODEL_NAME = "gemini-3.5-flash-lite";
         const MAX_USAGE = 500;
         let geminiApiKey = null, currentSlot = 1, chatMemories = {}, currKey = '', currVal = '';
-        let isTrackerOn = false, domElementMap = [];
 
-        const UI = { app: $('appWrapper'), intro: $('introOverlay'), usageBar: $('usageBar'), usageTxt: $('usageCountText'), preview: $('previewBox'), editor: $('codeEditor'), tree: $('structureBox'), bulb: $('bulbBtn'), popup: $('explanationPopup'), log: $('chatLog'), chatRow: $('chatInputRow'), chatIn: $('chatInput'), propName: $('popupPropName') };
+        const UI = {
+            app: $('appWrapper'), intro: $('introOverlay'), usageBar: $('usageBar'), usageTxt: $('usageCountText'),
+            preview: $('previewBox'), editor: $('codeEditor'), tree: $('structureBox'),
+            bulb: $('bulbBtn'), popup: $('explanationPopup'), log: $('chatLog'), chatRow: $('chatInputRow'), chatIn: $('chatInput'), propName: $('popupPropName')
+        };
         const store = { get: k => localStorage.getItem(k), set: (k,v) => localStorage.setItem(k, v), getObj: k => JSON.parse(localStorage.getItem(k))||null, setObj: (k,v) => localStorage.setItem(k, JSON.stringify(v)) };
 
         window.onload = () => { loadData(1); const k = store.get('savedGeminiKey'); if(k) $('introApiInput').value = k; }
+
         const selectNoApi = () => { geminiApiKey = null; closeIntro(); };
         const selectYesApi = () => { $('introBtnGroup').style.display = 'none'; $('apiInputContainer').style.display = 'flex'; };
-        const submitApiKey = () => { const k = $('introApiInput').value.trim(); if(k) { geminiApiKey = k; store.set('savedGeminiKey', k); updateUsage(); closeIntro(); } else alert('API 키를 입력해주세요!'); };
+        const submitApiKey = () => {
+            const k = $('introApiInput').value.trim();
+            if(k) { geminiApiKey = k; store.set('savedGeminiKey', k); updateUsage(); closeIntro(); } else alert('API 키를 입력해주세요!');
+        };
         const closeIntro = () => { UI.intro.style.display = 'none'; UI.app.classList.remove('blurred'); };
 
         function updateUsage() {
@@ -199,10 +200,13 @@
             const today = new Date().toDateString();
             let data = store.getObj('geminiUsage') || { d: today, c: 0 };
             if (data.d !== today) { data = { d: today, c: 0 }; store.setObj('geminiUsage', data); }
-            let stat = data.c >= MAX_USAGE ? `<span style="color:#f7768e;">(100% 소진! 내일 초기화)</span>` : data.c >= 450 ? `<span style="color:#e0af68;">(한도 임박! 내일 초기화)</span>` : `<span style="color:#a9b1d6;">(매일 밤 12시 초기화)</span>`;
+            
+            let stat = data.c >= MAX_USAGE ? `<span style="color:#f7768e;">(100% 소진! 내일 초기화)</span>` : 
+                       data.c >= 450 ? `<span style="color:#e0af68;">(한도 임박! 내일 초기화)</span>` : `<span style="color:#a9b1d6;">(매일 밤 12시 초기화)</span>`;
             UI.usageTxt.innerHTML = `오늘 질문: ${data.c}회 / ${MAX_USAGE}회 ${stat}`;
         }
         function incUsage() { let d = store.getObj('geminiUsage') || {d: new Date().toDateString(), c: 0}; d.c++; store.setObj('geminiUsage', d); updateUsage(); }
+
         const addMsg = (role, html) => { UI.log.insertAdjacentHTML('beforeend', `<div class="chat-msg ${role}">${html}</div>`); UI.log.scrollTop = UI.log.scrollHeight; };
         const formatAi = t => t.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:#bb9af7;">$1</b>');
 
@@ -231,7 +235,9 @@
 
         const callAPI = async (contents) => {
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${geminiApiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents }) });
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${geminiApiKey}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents })
+                });
                 const d = await res.json();
                 if(d.error) throw new Error(d.error.message);
                 incUsage(); return d.candidates[0].content.parts[0].text;
@@ -251,9 +257,11 @@
         const sendChatMsg = async () => {
             const m = UI.chatIn.value.trim(); if(!m) return;
             UI.chatIn.value = ''; chatMemories[currKey].push({ r: 'user', html: m }); renderChat();
+            
             const id = 'l_'+Date.now(); addMsg('ai', `<span id="${id}">작성 중...💭</span>`);
             let ctx = [{ role: 'user', parts: [{ text: `초보자 코딩 강사. 속성: '${currKey}'(값:'${currVal}'). 쉽고 구체적인 설명 사용.` }] }];
             chatMemories[currKey].forEach(h => ctx.push({ role: h.r==='model'?'model':'user', parts: [{ text: h.html }] }));
+            
             const txt = await callAPI(ctx);
             if($(id)) $(id).parentElement.remove();
             if(txt) { chatMemories[currKey].push({ r: 'model', html: formatAi(txt) }); renderChat(); }
@@ -284,7 +292,8 @@
             return root.c;
         }
 
-        const transTag = (n, t) => n==='div'?{b:'box',t:'📦 상자'}:n==='span'?{b:'text',t:'🏷️ 글자'}:n==='details'?{b:'special',t:'📂 펼치기 틀'}:n==='summary'?{b:'special',t:'▶ 제목'}:n==='#t'?{b:'',t:`📝 "${t.length>15?t.substring(0,15)+'...':t}"`}:{b:'',t:`<${n}>`};
+        /* 👇 핵심 1: HTML 파괴를 방지하는 태그 이름 안전화 코드 (단 1줄만 정확히 교체됨) */
+        const transTag = (n, t) => { let st = t ? t.replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''; return n==='div'?{b:'box',t:'📦 상자'}:n==='span'?{b:'text',t:'🏷️ 글자'}:n==='details'?{b:'special',t:'📂 펼치기 틀'}:n==='summary'?{b:'special',t:'▶ 제목'}:n==='#t'?{b:'',t:`📝 "${st.length>15?st.substring(0,15)+'...':st}"`}:{b:'',t:`&lt;${n}&gt;`}; };
 
         function getStyles(a) {
             const m = (a||'').match(/style\s*=\s*(["'])(.*?)\1/i); if(!m) return [];
@@ -294,73 +303,27 @@
         }
 
         function renderTree(nodes) {
-            let flatNodes = [];
-            function flatten(nList) {
-                for (let nd of nList) { flatNodes.push(nd); if (nd.c && nd.c.length) flatten(nd.c); }
-            }
-            flatten(nodes);
-            return flatNodes.map(nd => {
+            return nodes.map(nd => {
                 const info = transTag(nd.n, nd.txt), styles = getStyles(nd.a);
-                let h = `<div class="tree-node" style="margin-bottom: 12px;">`;
-                if (nd.n === '#t' || nd.n === 'br') {
-                    h += `<div class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')">${info.t}</div>`;
-                } else {
-                    h += `<details><summary class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')" style="margin-bottom: 4px;">${info.b?`<span class="badge ${info.b}">${info.b.toUpperCase()}</span>`:''}${info.t} (${styles.length})</summary>`;
+                let h = `<div class="tree-node">`;
+                if (nd.n === '#t' || nd.n === 'br') h += `<div class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')">${info.t}</div>`;
+                else {
+                    h += `<details><summary class="tree-summary" onclick="hlTag(event, ${nd.s}, ${nd.e}, '${nd.n}', '${info.t}')">${info.b?`<span class="badge ${info.b}">${info.b.toUpperCase()}</span>`:''}${info.t} (${styles.length})</summary>`;
                     if (styles.length) h += `<div class="prop-list">` + styles.map(p => `<div class="prop-item" onclick="hlProp(event, ${nd.s}, ${nd.oe}, '${p.k}', '${dict[p.k]||p.k}', '${p.v.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="prop-name">${dict[p.k]||p.k}</span><span class="prop-value">${p.v}</span></div>`).join('') + `</div>`;
+                    if (nd.c.length) h += `<div class="tree-children">${renderTree(nd.c)}</div>`;
                     h += `</details>`;
                 }
                 return h + `</div>`;
             }).join('');
         }
 
-        function toggleTracker() {
-            isTrackerOn = !isTrackerOn;
-            const btn = $('toggleTrackerBtn');
-            if (isTrackerOn) { btn.innerHTML = '🔍 위치 추적: ON'; btn.style.background = '#bb9af7'; btn.style.color = '#1a1b26'; highlightTargetElement(); } 
-            else { btn.innerHTML = '🔍 위치 추적: OFF'; btn.style.background = '#414868'; btn.style.color = '#c0caf5'; clearHighlight(); }
-        }
-
-        function clearHighlight() { UI.preview.querySelectorAll('.preview-highlight').forEach(el => el.classList.remove('preview-highlight')); }
-
-        function highlightTargetElement() {
-            if (!isTrackerOn) return;
-            clearHighlight();
-            const cursorPos = UI.editor.selectionStart;
-            let targetIndex = -1;
-            for (let i = 0; i < domElementMap.length; i++) {
-                const node = domElementMap[i];
-                if (cursorPos >= node.s && cursorPos <= node.e) targetIndex = i;
-            }
-            if (targetIndex !== -1) {
-                const domElements = UI.preview.querySelectorAll('*');
-                if (domElements[targetIndex]) domElements[targetIndex].classList.add('preview-highlight');
-            }
-        }
-
-        UI.editor.addEventListener('input', () => { 
-            UI.preview.innerHTML = UI.editor.value; 
-            analyzeCode(UI.editor.value); 
-            store.set('htmlCodeSlot_'+currentSlot, UI.editor.value); 
-            $('charCount').textContent = `(${UI.editor.value.length.toLocaleString()}자)`;
-        });
+        UI.editor.addEventListener('input', () => { UI.preview.innerHTML = UI.editor.value; analyzeCode(UI.editor.value); store.set('htmlCodeSlot_'+currentSlot, UI.editor.value); });
         
-        UI.editor.addEventListener('click', highlightTargetElement);
-        UI.editor.addEventListener('keyup', highlightTargetElement);
-        
-        function analyzeCode(html) { 
-            const ast = parseHTML(html);
-            UI.tree.innerHTML = !html.trim() ? '<div class="empty-msg">결과가 나타납니다.</div>' : renderTree(ast); 
-            domElementMap = [];
-            function mapElements(nodes) {
-                for(let nd of nodes) {
-                    if(nd.n !== '#t') { domElementMap.push(nd); if(nd.c && nd.c.length > 0) mapElements(nd.c); }
-                }
-            }
-            mapElements(ast);
-            if(isTrackerOn) highlightTargetElement();
-        }
+        function analyzeCode(html) { UI.tree.innerHTML = !html.trim() ? '<div class="empty-msg">결과가 나타납니다.</div>' : renderTree(parseHTML(html)); }
 
-        function openPop(k, kn, v) { currKey = k; currVal = v; UI.propName.textContent = kn; renderChat(); UI.popup.classList.remove('show'); UI.bulb.style.display = 'flex'; }
+        /* 👇 핵심 2: 안전화된 태그를 팝업창에서 예쁘게 보여주기 위한 복구 코드 (단 1줄만 교체됨) */
+        function openPop(k, kn, v) { currKey = k; currVal = v; UI.propName.textContent = kn.replace(/&lt;/g, '<').replace(/&gt;/g, '>'); renderChat(); UI.popup.classList.remove('show'); UI.bulb.style.display = 'flex'; }
+        
         const maximizeExplanation = () => { UI.bulb.style.display = 'none'; UI.popup.classList.add('show'); };
         const minimizeExplanation = () => { UI.popup.classList.remove('show'); UI.bulb.style.display = 'flex'; };
         const closeExplanation = () => { UI.popup.classList.remove('show'); UI.bulb.style.display = 'none'; };
@@ -368,7 +331,6 @@
         function hlTag(e, s, end, n, kn) {
             if(e) e.stopPropagation(); UI.editor.focus({preventScroll:true}); UI.editor.setSelectionRange(s, end);
             if(n && n !== '#t') openPop(['div','details','span'].includes(n)?n:'태그', kn, '전체');
-            highlightTargetElement(); 
         }
 
         function hlProp(e, s, oe, k, kn, v) {
@@ -376,7 +338,6 @@
             UI.editor.focus({preventScroll:true});
             if (m) UI.editor.setSelectionRange(s + m.index, s + m.index + m[0].length); else UI.editor.setSelectionRange(s, oe);
             openPop(k, kn, v);
-            highlightTargetElement(); 
         }
 
         function switchSlot(num) {
@@ -391,6 +352,7 @@
             const adjustKeyboard = () => {
                 let offset = window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop);
                 if (offset < 0) offset = 0;
+                
                 const popupBase = window.innerWidth <= 768 ? 20 : 25;
                 UI.popup.style.bottom = (offset + popupBase) + 'px';
                 UI.bulb.style.bottom = (offset + 30) + 'px';
